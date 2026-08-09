@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/router/app_router.dart';
+import 'core/services/hive_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
 import 'features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'features/orders/presentation/bloc/order_bloc.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HiveStorageService.init();
   runApp(const CremenEatStreetApp());
 }
 

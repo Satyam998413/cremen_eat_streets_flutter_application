@@ -39,6 +39,28 @@ class CartItem extends Equatable {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'product': product.toMap(),
+      'quantity': quantity,
+      'spiceLevel': spiceLevel,
+      'hasExtraCheese': hasExtraCheese,
+      'specialInstructions': specialInstructions,
+    };
+  }
+
+  factory CartItem.fromMap(Map<String, dynamic> map) {
+    return CartItem(
+      id: map['id'] as String,
+      product: Product.fromMap(map['product'] as Map<String, dynamic>),
+      quantity: map['quantity'] as int,
+      spiceLevel: map['spiceLevel'] as String? ?? 'Medium',
+      hasExtraCheese: map['hasExtraCheese'] as bool? ?? false,
+      specialInstructions: map['specialInstructions'] as String? ?? '',
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

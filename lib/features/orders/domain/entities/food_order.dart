@@ -52,6 +52,42 @@ class FoodOrder extends Equatable {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'items': items.map((item) => item.toMap()).toList(),
+      'totalAmount': totalAmount,
+      'status': status.name,
+      'orderType': orderType.name,
+      'createdAt': createdAt.toIso8601String(),
+      'customerName': customerName,
+      'customerPhone': customerPhone,
+      'deliveryAddress': deliveryAddress,
+    };
+  }
+
+  factory FoodOrder.fromMap(Map<String, dynamic> map) {
+    return FoodOrder(
+      id: map['id'] as String,
+      items: (map['items'] as List)
+          .map((item) => CartItem.fromMap(item as Map<String, dynamic>))
+          .toList(),
+      totalAmount: (map['totalAmount'] as num).toDouble(),
+      status: OrderStatus.values.firstWhere(
+        (value) => value.name == map['status'],
+        orElse: () => OrderStatus.received,
+      ),
+      orderType: OrderType.values.firstWhere(
+        (value) => value.name == map['orderType'],
+        orElse: () => OrderType.delivery,
+      ),
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      customerName: map['customerName'] as String,
+      customerPhone: map['customerPhone'] as String,
+      deliveryAddress: map['deliveryAddress'] as String?,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,
