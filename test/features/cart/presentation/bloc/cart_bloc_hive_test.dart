@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 import 'package:cremen_eatstreet_shop_application/core/services/hive_storage_service.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/domain/entities/cart_item.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_bloc.dart';

@@ -16,7 +16,7 @@ class HiveStorageService {
       dir = Directory.current;
     }
 
-    Hive.init(dir!.path);
+    Hive.init(dir.path);
     await Hive.openBox<Map<String, dynamic>>(_cartBoxName);
     await Hive.openBox<Map<String, dynamic>>(_ordersBoxName);
   }
@@ -37,14 +37,14 @@ class HiveStorageService {
   static Future<List<CartItem>> loadCartItems() async {
     await Hive.openBox<Map<String, dynamic>>(_cartBoxName);
     final box = Hive.box<Map<String, dynamic>>(_cartBoxName);
-    final data = box.get('items');
-    if (data == null) {
+    final rawData = box.get('items');
+    if (rawData == null) {
       return const [];
     }
-
+    final data = Map<String, dynamic>.from(rawData as Map);
     final rawItems = data['items'] as List<dynamic>? ?? const [];
     return rawItems
-        .map((item) => CartItem.fromMap(item as Map<String, dynamic>))
+        .map((item) => CartItem.fromMap(Map<String, dynamic>.from(item as Map)))
         .toList();
   }
 
@@ -59,14 +59,14 @@ class HiveStorageService {
   static Future<List<FoodOrder>> loadOrders() async {
     await Hive.openBox<Map<String, dynamic>>(_ordersBoxName);
     final box = Hive.box<Map<String, dynamic>>(_ordersBoxName);
-    final data = box.get('orders');
-    if (data == null) {
+    final rawData = box.get('orders');
+    if (rawData == null) {
       return const [];
     }
-
+    final data = Map<String, dynamic>.from(rawData as Map);
     final rawOrders = data['orders'] as List<dynamic>? ?? const [];
     return rawOrders
-        .map((order) => FoodOrder.fromMap(order as Map<String, dynamic>))
+        .map((order) => FoodOrder.fromMap(Map<String, dynamic>.from(order as Map)))
         .toList();
   }
 }

@@ -248,7 +248,7 @@ class _PinEntryScreenState extends State<PinEntryScreen>
           top: random.nextDouble() * 100,
           child: AnimatedBuilder(
             animation: _backgroundController,
-            builder: (_, __) {
+            builder: (_, _) {
               final progress = ((_backgroundController.value + delay) % 1.0);
               final y = -size + (progress * (MediaQuery.of(context).size.height + size));
               return Opacity(

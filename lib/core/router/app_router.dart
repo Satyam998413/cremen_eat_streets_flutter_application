@@ -1,9 +1,5 @@
 import 'package:go_router/go_router.dart';
-import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
-import '../../features/cart/presentation/screens/cart_screen.dart';
-import '../../features/catalog/presentation/screens/home_screen.dart';
-import '../../features/orders/presentation/screens/order_history_screen.dart';
 import '../../features/orders/presentation/screens/order_tracking_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../widgets/main_shell_screen.dart';

@@ -70,7 +70,7 @@ class FoodOrder extends Equatable {
     return FoodOrder(
       id: map['id'] as String,
       items: (map['items'] as List)
-          .map((item) => CartItem.fromMap(item as Map<String, dynamic>))
+          .map((item) => CartItem.fromMap(Map<String, dynamic>.from(item as Map)))
           .toList(),
       totalAmount: (map['totalAmount'] as num).toDouble(),
       status: OrderStatus.values.firstWhere(
