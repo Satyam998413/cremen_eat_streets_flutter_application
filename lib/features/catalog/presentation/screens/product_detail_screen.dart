@@ -20,22 +20,30 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
-  String _spiceLevel = 'Medium';
-  bool _hasExtraCheese = false;
-  final TextEditingController _instructionsController = TextEditingController();
-
-  double get _totalPrice =>
-      (widget.product.price + (_hasExtraCheese ? 15 : 0)) * _quantity;
+  String? _selectedVariantLabel;
 
   @override
-  void dispose() {
-    _instructionsController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    if (widget.product.hasVariants) {
+      _selectedVariantLabel = widget.product.variants.first.label;
+    }
   }
+
+  double get _unitPrice {
+    if (_selectedVariantLabel == null) return widget.product.basePrice;
+    for (final variant in widget.product.variants) {
+      if (variant.label == _selectedVariantLabel) return variant.price;
+    }
+    return widget.product.basePrice;
+  }
+
+  double get _totalPrice => _unitPrice * _quantity;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final product = widget.product;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,7 +51,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(widget.product.name),
+        title: Text(product.name),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -54,7 +62,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: ResponsiveProductImage(
-                  imageUrl: widget.product.imageUrl,
+                  imageUrl: product.primaryImageUrl,
                   height: 220,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -67,87 +75,68 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.product.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      product.name,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if (product.isSpicy ?? false)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.spicyRed,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        '🔥 Spicy',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: widget.product.isMorningSpecial
-                          ? AppColors.morningGold
-                          : AppColors.brandPrimary,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      widget.product.isMorningSpecial ? 'Morning Special' : 'Popular',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                    ),
-                  ),
                 ],
               ),
+              if (product.subtitle != null && product.subtitle!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  product.subtitle!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Text(
-                '₹${widget.product.price.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.brandPrimary,
-                ),
+                '₹${_unitPrice.toStringAsFixed(0)}',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brandPrimary),
               ),
               const SizedBox(height: 12),
               Text(
-                widget.product.description,
+                product.description,
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.6,
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text('Select Spice Level 🌶️', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ['Mild', 'Medium', 'Spicy'].map((level) {
-                  final isSelected = _spiceLevel == level;
-                  return ChoiceChip(
-                    label: Text(level),
-                    selected: isSelected,
-                    selectedColor: AppColors.brandPrimary,
-                    onSelected: (value) {
-                      if (value) {
-                        setState(() => _spiceLevel = level);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Extra Fresh Cheese (+₹15)'),
-                subtitle: const Text('Rich, creamy paneer topping', style: TextStyle(fontSize: 12)),
-                value: _hasExtraCheese,
-                activeColor: AppColors.brandPrimary,
-                onChanged: (value) => setState(() => _hasExtraCheese = value ?? false),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _instructionsController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Special Instructions (e.g. No onion)',
-                  prefixIcon: const Icon(Icons.edit_note, color: AppColors.brandPrimary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              if (product.hasVariants) ...[
+                const SizedBox(height: 20),
+                const Text('Choose an option', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: product.variants.map((variant) {
+                    final isSelected = _selectedVariantLabel == variant.label;
+                    return ChoiceChip(
+                      label: Text('${variant.label} • ₹${variant.price.toStringAsFixed(0)}'),
+                      selected: isSelected,
+                      selectedColor: AppColors.brandPrimary,
+                      onSelected: (value) {
+                        if (value) setState(() => _selectedVariantLabel = variant.label);
+                      },
+                    );
+                  }).toList(),
                 ),
-              ),
+              ],
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -165,11 +154,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       onPressed: () {
                         final item = CartItem(
                           id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          product: widget.product,
+                          product: product,
                           quantity: _quantity,
-                          spiceLevel: _spiceLevel,
-                          hasExtraCheese: _hasExtraCheese,
-                          specialInstructions: _instructionsController.text,
+                          variantLabel: _selectedVariantLabel,
                         );
                         context.read<CartBloc>().add(CartItemAdded(item));
                         Navigator.of(context).pop();
@@ -179,7 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               children: [
                                 const Icon(Icons.check_circle, color: Colors.white, size: 18),
                                 const SizedBox(width: 8),
-                                Text('${widget.product.name} added!'),
+                                Text('${product.name} added!'),
                               ],
                             ),
                             backgroundColor: AppColors.successGreen,

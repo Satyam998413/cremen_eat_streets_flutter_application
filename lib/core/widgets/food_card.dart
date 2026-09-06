@@ -74,12 +74,8 @@ class _FoodCardState extends State<FoodCard>
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _isPressed
-                  ? AppColors.brandPrimary
-                  : widget.product.isMorningSpecial
-                      ? AppColors.morningGold
-                      : AppColors.cardBorder,
-              width: _isPressed ? 2 : widget.product.isMorningSpecial ? 2 : 1,
+              color: _isPressed ? AppColors.brandPrimary : AppColors.cardBorder,
+              width: _isPressed ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
@@ -102,7 +98,7 @@ class _FoodCardState extends State<FoodCard>
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(19)),
                     child: ResponsiveProductImage(
-                      imageUrl: widget.product.imageUrl,
+                      imageUrl: widget.product.primaryImageUrl,
                       height: 120,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -112,7 +108,38 @@ class _FoodCardState extends State<FoodCard>
                       fallbackColor: AppColors.brandPrimary.withValues(alpha: 0.12),
                     ),
                   ),
-                  if (widget.product.isSpicy)
+                  if (widget.product.isVeg != null)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Semantics(
+                        label: widget.product.isVeg! ? 'Vegetarian' : 'Non-vegetarian',
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: widget.product.isVeg! ? AppColors.successGreen : AppColors.spicyRed,
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: widget.product.isVeg! ? BoxShape.circle : BoxShape.rectangle,
+                                color: widget.product.isVeg! ? AppColors.successGreen : AppColors.spicyRed,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (widget.product.isSpicy ?? false)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -144,32 +171,6 @@ class _FoodCardState extends State<FoodCard>
                             end: 1.08,
                             duration: 1000.ms,
                             curve: Curves.easeInOut,
-                          ),
-                    ),
-                  if (widget.product.isMorningSpecial)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.morningGold,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          '☀️ Special',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          .animate(onPlay: (c) => c.repeat(reverse: true))
-                          .shimmer(
-                            duration: 1800.ms,
-                            color: Colors.white.withValues(alpha: 0.4),
                           ),
                     ),
                 ],
@@ -220,7 +221,7 @@ class _FoodCardState extends State<FoodCard>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '₹${widget.product.price.toStringAsFixed(0)}',
+                            '₹${widget.product.basePrice.toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,

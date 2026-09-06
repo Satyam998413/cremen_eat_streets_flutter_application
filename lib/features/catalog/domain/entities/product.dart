@@ -1,61 +1,156 @@
 import 'package:equatable/equatable.dart';
 
-class Product extends Equatable {
-  final String id;
-  final String name;
-  final String description;
-  final double price;
-  final String imageUrl;
-  final String category; // 'bhel', 'puri', 'chaat', 'morning_special'
-  final bool isSpicy;
-  final bool isMorningSpecial;
+/// One priced option for a product — e.g. a pack size or flavor. Mirrors one
+/// entry of the `products.variants` jsonb array (see
+/// plans/platform-overview.md, cremen_eat_streets, Step 4a).
+class ProductVariant extends Equatable {
+  const ProductVariant({required this.label, required this.price});
 
+  final String label;
+  final double price;
+
+  Map<String, dynamic> toMap() => {'label': label, 'price': price};
+
+  factory ProductVariant.fromMap(Map<String, dynamic> map) {
+    return ProductVariant(label: map['label'] as String, price: (map['price'] as num).toDouble());
+  }
+
+  @override
+  List<Object?> get props => [label, price];
+}
+
+class ProductMedia extends Equatable {
+  const ProductMedia({required this.url, required this.isPrimary, this.altText});
+
+  final String url;
+  final bool isPrimary;
+  final String? altText;
+
+  Map<String, dynamic> toMap() => {'url': url, 'isPrimary': isPrimary, 'altText': altText};
+
+  factory ProductMedia.fromMap(Map<String, dynamic> map) {
+    return ProductMedia(
+      url: map['url'] as String,
+      isPrimary: map['isPrimary'] as bool? ?? false,
+      altText: map['altText'] as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [url, isPrimary, altText];
+}
+
+/// Mirrors the columns of `products` this app actually displays — the
+/// packaged-only label/nutrition fields (weight_label, ingredients, batch_no,
+/// etc.) are Label Studio/admin-only and deliberately left out here.
+class Product extends Equatable {
   const Product({
     required this.id,
+    required this.productType,
+    required this.slug,
     required this.name,
     required this.description,
-    required this.price,
-    required this.imageUrl,
-    required this.category,
-    required this.isSpicy,
-    required this.isMorningSpecial,
+    required this.basePrice,
+    this.subtitle,
+    this.compareAtPrice,
+    this.variants = const [],
+    this.requiresShipping = true,
+    this.isVeg,
+    this.isSpicy,
+    this.prepTimeLabel,
+    this.ratingAvg = 0,
+    this.ratingCount = 0,
+    this.media = const [],
   });
+
+  final String id;
+  final String productType; // 'packaged' | 'fresh_food'
+  final String slug;
+  final String name;
+  final String? subtitle;
+  final String description;
+  final double basePrice;
+  final double? compareAtPrice;
+  final List<ProductVariant> variants;
+  final bool requiresShipping;
+  final bool? isVeg;
+  final bool? isSpicy;
+  final String? prepTimeLabel;
+  final double ratingAvg;
+  final int ratingCount;
+  final List<ProductMedia> media;
+
+  bool get isPackaged => productType == 'packaged';
+  bool get hasVariants => variants.isNotEmpty;
+
+  String get primaryImageUrl {
+    if (media.isEmpty) return '';
+    return media.firstWhere((m) => m.isPrimary, orElse: () => media.first).url;
+  }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'productType': productType,
+      'slug': slug,
       'name': name,
+      'subtitle': subtitle,
       'description': description,
-      'price': price,
-      'imageUrl': imageUrl,
-      'category': category,
+      'basePrice': basePrice,
+      'compareAtPrice': compareAtPrice,
+      'variants': variants.map((v) => v.toMap()).toList(),
+      'requiresShipping': requiresShipping,
+      'isVeg': isVeg,
       'isSpicy': isSpicy,
-      'isMorningSpecial': isMorningSpecial,
+      'prepTimeLabel': prepTimeLabel,
+      'ratingAvg': ratingAvg,
+      'ratingCount': ratingCount,
+      'media': media.map((m) => m.toMap()).toList(),
     };
   }
 
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
       id: map['id'] as String,
+      productType: map['productType'] as String,
+      slug: map['slug'] as String,
       name: map['name'] as String,
-      description: map['description'] as String,
-      price: (map['price'] as num).toDouble(),
-      imageUrl: map['imageUrl'] as String,
-      category: map['category'] as String,
-      isSpicy: map['isSpicy'] as bool,
-      isMorningSpecial: map['isMorningSpecial'] as bool,
+      subtitle: map['subtitle'] as String?,
+      description: map['description'] as String? ?? '',
+      basePrice: (map['basePrice'] as num).toDouble(),
+      compareAtPrice: (map['compareAtPrice'] as num?)?.toDouble(),
+      variants: (map['variants'] as List<dynamic>? ?? const [])
+          .map((v) => ProductVariant.fromMap(Map<String, dynamic>.from(v as Map)))
+          .toList(),
+      requiresShipping: map['requiresShipping'] as bool? ?? true,
+      isVeg: map['isVeg'] as bool?,
+      isSpicy: map['isSpicy'] as bool?,
+      prepTimeLabel: map['prepTimeLabel'] as String?,
+      ratingAvg: (map['ratingAvg'] as num?)?.toDouble() ?? 0,
+      ratingCount: map['ratingCount'] as int? ?? 0,
+      media: (map['media'] as List<dynamic>? ?? const [])
+          .map((m) => ProductMedia.fromMap(Map<String, dynamic>.from(m as Map)))
+          .toList(),
     );
   }
 
   @override
   List<Object?> get props => [
         id,
+        productType,
+        slug,
         name,
+        subtitle,
         description,
-        price,
-        imageUrl,
-        category,
+        basePrice,
+        compareAtPrice,
+        variants,
+        requiresShipping,
+        isVeg,
         isSpicy,
-        isMorningSpecial,
+        prepTimeLabel,
+        ratingAvg,
+        ratingCount,
+        media,
       ];
 }

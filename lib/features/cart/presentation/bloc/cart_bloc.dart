@@ -22,9 +22,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
   Future<void> _onCartItemAdded(CartItemAdded event, Emitter<CartState> emit) async {
     final existingIndex = state.items.indexWhere(
-      (item) => item.product.id == event.item.product.id &&
-          item.spiceLevel == event.item.spiceLevel &&
-          item.hasExtraCheese == event.item.hasExtraCheese,
+      (item) =>
+          item.product.id == event.item.product.id && item.variantLabel == event.item.variantLabel,
     );
 
     List<CartItem> updatedItems;

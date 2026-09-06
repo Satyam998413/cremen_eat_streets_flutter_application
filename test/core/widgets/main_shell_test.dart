@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import '../../support/auth_test_support.dart';
 import '../../support/hive_test_utils.dart';
+import '../../support/product_fixtures.dart';
 
 void main() {
   setUpAll(() async {
@@ -21,7 +22,7 @@ void main() {
   Widget buildShell({int initialIndex = 0}) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<CatalogBloc>(create: (_) => CatalogBloc()),
+        BlocProvider<CatalogBloc>(create: (_) => CatalogBloc(buildTestGetCatalogUseCase())),
         BlocProvider<CartBloc>(create: (_) => CartBloc()),
         BlocProvider<OrderBloc>(create: (_) => OrderBloc()),
         BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),

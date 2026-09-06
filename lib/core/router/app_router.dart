@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -9,6 +10,8 @@ import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/checkout/presentation/bloc/checkout_bloc.dart';
+import '../../features/checkout/presentation/screens/checkout_screen.dart';
 import '../../features/orders/presentation/screens/order_tracking_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../widgets/main_shell_screen.dart';
@@ -35,7 +38,7 @@ const _authOnlyPaths = {'/login', '/login/otp', '/signup', '/forgot-password'};
 /// Screens that require a logged-in customer.
 const _protectedPaths = {'/account'};
 
-GoRouter buildAppRouter(AuthBloc authBloc) {
+GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckoutBloc) {
   return GoRouter(
     initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
@@ -90,6 +93,14 @@ GoRouter buildAppRouter(AuthBloc authBloc) {
         path: '/cart',
         name: 'cart',
         builder: (context, state) => const MainShellScreen(initialIndex: ShellTab.cart),
+      ),
+      GoRoute(
+        path: '/checkout',
+        name: 'checkout',
+        builder: (context, state) => BlocProvider<CheckoutBloc>(
+          create: (_) => createCheckoutBloc(),
+          child: const CheckoutScreen(),
+        ),
       ),
       GoRoute(
         path: '/orders',

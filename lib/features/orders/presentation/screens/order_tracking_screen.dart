@@ -73,8 +73,10 @@ class OrderTrackingScreen extends StatelessWidget {
                 orElse: () => FoodOrder(
                   id: orderId,
                   items: const [],
+                  subtotal: 0,
+                  shippingFee: 0,
                   totalAmount: 0,
-                  status: OrderStatus.preparing,
+                  status: OrderStatus.pendingPayment,
                   orderType: OrderType.pickup,
                   createdAt: DateTime.now(),
                   customerName: 'Guest',
@@ -82,11 +84,14 @@ class OrderTrackingScreen extends StatelessWidget {
                 ),
               );
 
+          if (order.status == OrderStatus.cancelled) {
+            return _CancelledView(order: order);
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Cooking Banner Card
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -106,15 +111,11 @@ class OrderTrackingScreen extends StatelessWidget {
                       SizedBox(height: 12),
                       Text(
                         'Creating Magic...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'Our Bawarchi is crafting your perfect street food with fresh ingredients and secret spices!',
+                        'Our team is preparing your order with fresh ingredients!',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
@@ -122,28 +123,58 @@ class OrderTrackingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 28),
-
-                // Stepper Progress
-                _buildStep('Order Received', 'Sent to Cremen EatStreets Kitchen', true, order.status == OrderStatus.received, Icons.receipt),
+                _buildStep(
+                  'Payment Pending',
+                  'Waiting for payment confirmation',
+                  order.status.index >= OrderStatus.pendingPayment.index,
+                  order.status == OrderStatus.pendingPayment,
+                  Icons.hourglass_top,
+                ),
                 const Padding(
                   padding: EdgeInsets.only(left: 20),
                   child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
                 ),
-                _buildStep('Bawarchi Preparing', 'Fresh ingredients mixing & frying', order.status.index >= OrderStatus.preparing.index, order.status == OrderStatus.preparing, Icons.outdoor_grill),
+                _buildStep(
+                  'Order Confirmed',
+                  'Payment received, sent to the kitchen',
+                  order.status.index >= OrderStatus.confirmed.index,
+                  order.status == OrderStatus.confirmed,
+                  Icons.receipt,
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
+                ),
+                _buildStep(
+                  'Preparing',
+                  'Fresh ingredients mixing & frying',
+                  order.status.index >= OrderStatus.processing.index,
+                  order.status == OrderStatus.processing,
+                  Icons.outdoor_grill,
+                ),
                 const Padding(
                   padding: EdgeInsets.only(left: 20),
                   child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
                 ),
                 _buildStep(
                   order.orderType == OrderType.pickup ? 'Ready for Pickup' : 'Out for Delivery',
-                  order.orderType == OrderType.pickup ? 'Visit Satyam Baranwal cart in Surat' : 'Rider delivering hot chaat',
-                  order.status.index >= OrderStatus.ready.index,
-                  order.status == OrderStatus.ready,
+                  order.orderType == OrderType.pickup ? 'Visit the cart in Surat' : 'Rider on the way',
+                  order.status.index >= OrderStatus.dispatched.index,
+                  order.status == OrderStatus.dispatched,
                   Icons.local_shipping,
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
+                ),
+                _buildStep(
+                  'Delivered',
+                  'Enjoy your meal!',
+                  order.status == OrderStatus.delivered,
+                  order.status == OrderStatus.delivered,
+                  Icons.check_circle,
+                ),
                 const SizedBox(height: 32),
-
-                // Contact Owner Card
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -162,26 +193,23 @@ class OrderTrackingScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Satyam Baranwal',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            Text(
-                              'Founder & Owner • Cremen EatStreets',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
+                            Text('Cremen Eat Streets', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Questions about your order?', style: TextStyle(fontSize: 12, color: Colors.grey)),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.phone_in_talk, color: AppColors.brandPrimary),
-                        onPressed: _makePhoneCall,
+                      Semantics(
+                        label: 'Call Cremen Eat Streets',
+                        button: true,
+                        child: IconButton(
+                          icon: const Icon(Icons.phone_in_talk, color: AppColors.brandPrimary),
+                          onPressed: _makePhoneCall,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 AppButton(
                   label: 'Back to Menu',
                   isOutlined: true,
@@ -191,6 +219,31 @@ class OrderTrackingScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _CancelledView extends StatelessWidget {
+  const _CancelledView({required this.order});
+
+  final FoodOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cancel_outlined, size: 64, color: AppColors.spicyRed),
+            const SizedBox(height: 12),
+            const Text('This order was cancelled.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 20),
+            AppButton(label: 'Back to Menu', onPressed: () => context.go('/')),
+          ],
+        ),
       ),
     );
   }

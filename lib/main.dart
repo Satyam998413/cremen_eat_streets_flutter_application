@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
+import 'core/network/dio_client.dart';
 import 'core/router/app_router.dart';
 import 'core/services/hive_storage_service.dart';
 import 'core/theme/app_theme.dart';
@@ -23,7 +24,16 @@ import 'features/auth/domain/usecases/update_password_usecase.dart';
 import 'features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
+import 'features/catalog/data/datasources/catalog_remote_datasource.dart';
+import 'features/catalog/data/repositories/catalog_repository_impl.dart';
+import 'features/catalog/domain/usecases/get_catalog_usecase.dart';
 import 'features/catalog/presentation/bloc/catalog_bloc.dart';
+import 'features/checkout/data/datasources/checkout_remote_datasource.dart';
+import 'features/checkout/data/repositories/checkout_repository_impl.dart';
+import 'features/checkout/domain/repositories/checkout_repository.dart';
+import 'features/checkout/domain/usecases/create_order_usecase.dart';
+import 'features/checkout/domain/usecases/verify_payment_usecase.dart';
+import 'features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'features/orders/presentation/bloc/order_bloc.dart';
 
 Future<void> main() async {
@@ -47,12 +57,16 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   // dependency is wired by hand right here instead.
   late final AuthRepository _authRepository;
   late final AuthBloc _authBloc;
+  late final GetCatalogUseCase _getCatalog;
+  late final CheckoutRepository _checkoutRepository;
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
     _authRepository = AuthRepositoryImpl(AuthRemoteDataSource(Supabase.instance.client));
+    _getCatalog = GetCatalogUseCase(CatalogRepositoryImpl(CatalogRemoteDataSource(Supabase.instance.client)));
+    _checkoutRepository = CheckoutRepositoryImpl(CheckoutRemoteDataSource(buildDioClient()));
     _authBloc = AuthBloc(
       repository: _authRepository,
       loginWithPassword: LoginWithPasswordUseCase(_authRepository),
@@ -66,7 +80,13 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
       claimGuestOrders: ClaimGuestOrdersUseCase(_authRepository),
       logout: LogoutUseCase(_authRepository),
     );
-    _router = buildAppRouter(_authBloc);
+    _router = buildAppRouter(
+      _authBloc,
+      () => CheckoutBloc(
+        createOrder: CreateOrderUseCase(_checkoutRepository),
+        verifyPayment: VerifyPaymentUseCase(_checkoutRepository),
+      ),
+    );
   }
 
   @override
@@ -80,7 +100,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<CatalogBloc>(
-          create: (_) => CatalogBloc(),
+          create: (_) => CatalogBloc(_getCatalog),
         ),
         BlocProvider<CartBloc>(
           create: (_) => CartBloc(),

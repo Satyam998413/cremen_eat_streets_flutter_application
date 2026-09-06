@@ -1,26 +1,11 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-abstract class CatalogEvent extends Equatable {
-  const CatalogEvent();
+part 'catalog_event.freezed.dart';
 
-  @override
-  List<Object?> get props => [];
-}
-
-class CatalogStarted extends CatalogEvent {}
-
-class CatalogCategorySelected extends CatalogEvent {
-  final String category;
-  const CatalogCategorySelected(this.category);
-
-  @override
-  List<Object?> get props => [category];
-}
-
-class CatalogSearchQueryChanged extends CatalogEvent {
-  final String query;
-  const CatalogSearchQueryChanged(this.query);
-
-  @override
-  List<Object?> get props => [query];
+@freezed
+sealed class CatalogEvent with _$CatalogEvent {
+  const factory CatalogEvent.requested() = CatalogRequested;
+  const factory CatalogEvent.refreshRequested() = CatalogRefreshRequested;
+  const factory CatalogEvent.categorySelected(String? productType) = CatalogCategorySelected;
+  const factory CatalogEvent.searchQueryChanged(String query) = CatalogSearchQueryChanged;
 }

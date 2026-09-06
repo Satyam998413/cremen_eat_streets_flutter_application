@@ -53,11 +53,20 @@ class HiveStorageService {
     if (rawData == null) {
       return const [];
     }
-    final data = Map<String, dynamic>.from(rawData as Map);
-    final rawItems = data['items'] as List<dynamic>? ?? const [];
-    return rawItems
-        .map((item) => CartItem.fromMap(Map<String, dynamic>.from(item as Map)))
-        .toList();
+    try {
+      final data = Map<String, dynamic>.from(rawData as Map);
+      final rawItems = data['items'] as List<dynamic>? ?? const [];
+      return rawItems
+          .map((item) => CartItem.fromMap(Map<String, dynamic>.from(item as Map)))
+          .toList();
+    } catch (_) {
+      // A shape from an earlier, incompatible app version — Hive has no
+      // schema migration (Rule 3), and this box holds nothing worth
+      // preserving across a breaking model change, so drop it instead of
+      // crashing on every future launch.
+      await box.delete('items');
+      return const [];
+    }
   }
 
   static Future<void> saveOrders(List<FoodOrder> orders) async {
@@ -75,10 +84,17 @@ class HiveStorageService {
     if (rawData == null) {
       return const [];
     }
-    final data = Map<String, dynamic>.from(rawData as Map);
-    final rawOrders = data['orders'] as List<dynamic>? ?? const [];
-    return rawOrders
-        .map((order) => FoodOrder.fromMap(Map<String, dynamic>.from(order as Map)))
-        .toList();
+    try {
+      final data = Map<String, dynamic>.from(rawData as Map);
+      final rawOrders = data['orders'] as List<dynamic>? ?? const [];
+      return rawOrders
+          .map((order) => FoodOrder.fromMap(Map<String, dynamic>.from(order as Map)))
+          .toList();
+    } catch (_) {
+      // Same reasoning as loadCartItems — an incompatible shape from an
+      // earlier app version isn't worth crashing startup over.
+      await box.delete('orders');
+      return const [];
+    }
   }
 }

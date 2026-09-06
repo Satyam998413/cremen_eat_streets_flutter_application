@@ -3,8 +3,8 @@ import 'package:cremen_eatstreet_shop_application/features/cart/domain/entities/
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_event.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_state.dart';
-import 'package:cremen_eatstreet_shop_application/features/catalog/data/models/product_data.dart';
 import '../../../../support/hive_test_utils.dart';
+import '../../../../support/product_fixtures.dart';
 
 void main() {
   group('CartBloc Tests', () {
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('adds item to cart correctly', () async {
-      final sampleProduct = ProductData.sampleProducts.first;
+      final sampleProduct = buildTestProduct();
       final cartItem = CartItem(
         id: '1',
         product: sampleProduct,

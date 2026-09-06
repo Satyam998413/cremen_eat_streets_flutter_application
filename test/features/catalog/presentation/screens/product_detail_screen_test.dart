@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cremen_eatstreet_shop_application/features/catalog/domain/entities/product.dart';
 import 'package:cremen_eatstreet_shop_application/features/catalog/presentation/screens/product_detail_screen.dart';
+import '../../../../support/product_fixtures.dart';
 
 void main() {
   testWidgets('shows product details screen with a back button', (tester) async {
-    final product = Product(
-      id: 'demo',
-      name: 'Demo Bhel',
-      description: 'A tasty demo item',
-      price: 40,
-      imageUrl: 'assets/images/cremen_logo.jpg',
-      category: 'bhel',
-      isSpicy: true,
-      isMorningSpecial: false,
-    );
+    final product = buildTestProduct(name: 'Demo Bhel');
 
     await tester.pumpWidget(
       MaterialApp(
