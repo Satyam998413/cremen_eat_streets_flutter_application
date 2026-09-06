@@ -6,75 +6,6 @@ import '../../../../core/widgets/app_button.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
-  void _showOwnerPinDialog(BuildContext context) {
-    final TextEditingController pinController = TextEditingController();
-    String? errorMessage;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(
-                children: [
-                  Icon(Icons.admin_panel_settings, color: AppColors.brandPrimary),
-                  SizedBox(width: 8),
-                  Text('Owner Access'),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Enter 6-digit Owner PIN to access kitchen orders queue:'),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: pinController,
-                    obscureText: true,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Default PIN: 123456',
-                      errorText: errorMessage,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () {
-                    if (pinController.text.trim() == '123456') {
-                      Navigator.pop(dialogContext);
-                      context.push('/admin/dashboard');
-                    } else {
-                      setDialogState(() {
-                        errorMessage = 'Incorrect PIN! Try 123456';
-                      });
-                    }
-                  },
-                  child: const Text('Unlock Queue'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,16 +150,26 @@ class OnboardingScreen extends StatelessWidget {
                       onPressed: () => context.go('/'),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () => _showOwnerPinDialog(context),
-                    child: const Text(
-                      'Owner Console (Satyam Baranwal)',
-                      style: TextStyle(
-                        color: AppColors.textSecondaryLight,
-                        fontWeight: FontWeight.w600,
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () => context.push('/login'),
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(color: AppColors.brandDark, fontWeight: FontWeight.w700),
+                        ),
                       ),
-                    ),
+                      const Text('·', style: TextStyle(color: AppColors.textSecondaryLight)),
+                      TextButton(
+                        onPressed: () => context.push('/signup'),
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(color: AppColors.brandDark, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

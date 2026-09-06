@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/bottom_nav_bar.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../../../core/widgets/responsive_product_image.dart';
 import '../../../cart/domain/entities/cart_item.dart';
@@ -22,7 +20,6 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
-  int _selectedNavIndex = 0;
   String _spiceLevel = 'Medium';
   bool _hasExtraCheese = false;
   final TextEditingController _instructionsController = TextEditingController();
@@ -198,17 +195,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: _selectedNavIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedNavIndex = index);
-          if (index == 0) {
-            context.pop();
-          } else {
-            context.push('/cart');
-          }
-        },
       ),
     );
   }

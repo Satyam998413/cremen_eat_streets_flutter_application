@@ -4,12 +4,20 @@ import 'package:cremen_eatstreet_shop_application/features/cart/presentation/blo
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_event.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_state.dart';
 import 'package:cremen_eatstreet_shop_application/features/catalog/data/models/product_data.dart';
+import '../../../../support/hive_test_utils.dart';
 
 void main() {
   group('CartBloc Tests', () {
     late CartBloc cartBloc;
 
+    setUpAll(() async {
+      await initIsolatedHive();
+    });
+
     setUp(() {
+      // A fresh, isolated temp directory is created once per test file in
+      // setUpAll, and neither test below persists anything before this one
+      // runs — nothing to wipe between them.
       cartBloc = CartBloc();
     });
 

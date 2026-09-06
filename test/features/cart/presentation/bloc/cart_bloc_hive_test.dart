@@ -3,12 +3,13 @@ import 'package:cremen_eatstreet_shop_application/core/services/hive_storage_ser
 import 'package:cremen_eatstreet_shop_application/features/cart/domain/entities/cart_item.dart';
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:cremen_eatstreet_shop_application/features/catalog/domain/entities/product.dart';
+import '../../../../support/hive_test_utils.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    await HiveStorageService.init();
+    await initIsolatedHive();
     await HiveStorageService.clearAll();
   });
 
