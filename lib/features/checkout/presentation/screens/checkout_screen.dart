@@ -9,8 +9,6 @@ import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
 import '../../../orders/domain/entities/food_order.dart';
-import '../../../orders/presentation/bloc/order_bloc.dart';
-import '../../../orders/presentation/bloc/order_event.dart';
 import '../bloc/checkout_bloc.dart';
 import '../bloc/checkout_event.dart';
 import '../bloc/checkout_state.dart';
@@ -273,25 +271,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _onCheckoutSuccess(BuildContext context, String publicToken) {
-    final cartState = context.read<CartBloc>().state;
-    final deliveryFee = _orderType == OrderType.delivery ? 20.0 : 0.0;
-    // Interim local mirror so Order Tracking/History show something
-    // meaningful until they're rewired onto Supabase directly (next slice) —
-    // the real order already exists server-side, confirmed by this success.
-    context.read<OrderBloc>().add(OrderPlaced(FoodOrder(
-          id: publicToken,
-          publicToken: publicToken,
-          items: List.of(cartState.items),
-          subtotal: cartState.totalAmount,
-          shippingFee: deliveryFee,
-          totalAmount: cartState.totalAmount + deliveryFee,
-          status: OrderStatus.confirmed,
-          orderType: _orderType,
-          createdAt: DateTime.now(),
-          customerName: _nameController.text.trim(),
-          customerPhone: _phoneController.text.trim(),
-          customerEmail: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        )));
+    // The order already exists server-side (confirmed by this success) —
+    // Order Tracking fetches it for itself by public_token, so there's
+    // nothing to mirror locally here.
     context.read<CartBloc>().add(CartCleared());
     context.go('/orders/$publicToken');
   }

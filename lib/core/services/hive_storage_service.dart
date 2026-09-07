@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../features/cart/domain/entities/cart_item.dart';
-import '../../features/orders/domain/entities/food_order.dart';
 
+/// Local-only persistence for the cart — deliberately the only thing cached
+/// here. Orders are fetched live from Supabase (see OrderRepository); there
+/// is no local order cache to keep in sync with the server's own status
+/// changes.
 class HiveStorageService {
   static const String _cartBoxName = 'cart_box';
-  static const String _ordersBoxName = 'orders_box';
 
   /// [storagePath] lets callers (tests) point Hive at an isolated directory —
   /// without it, every caller that falls into the catch-all below shares the
@@ -30,12 +32,10 @@ class HiveStorageService {
     // real persisted data — the manual Map<String, dynamic>.from(...) below
     // is what actually normalizes the shape, and needs an untyped box to run.
     await Hive.openBox(_cartBoxName);
-    await Hive.openBox(_ordersBoxName);
   }
 
   static Future<void> clearAll() async {
     await Hive.deleteBoxFromDisk(_cartBoxName);
-    await Hive.deleteBoxFromDisk(_ordersBoxName);
   }
 
   static Future<void> saveCartItems(List<CartItem> items) async {
@@ -65,35 +65,6 @@ class HiveStorageService {
       // preserving across a breaking model change, so drop it instead of
       // crashing on every future launch.
       await box.delete('items');
-      return const [];
-    }
-  }
-
-  static Future<void> saveOrders(List<FoodOrder> orders) async {
-    await Hive.openBox(_ordersBoxName);
-    final box = Hive.box(_ordersBoxName);
-    await box.put('orders', {
-      'orders': orders.map((order) => order.toMap()).toList(),
-    });
-  }
-
-  static Future<List<FoodOrder>> loadOrders() async {
-    await Hive.openBox(_ordersBoxName);
-    final box = Hive.box(_ordersBoxName);
-    final rawData = box.get('orders');
-    if (rawData == null) {
-      return const [];
-    }
-    try {
-      final data = Map<String, dynamic>.from(rawData as Map);
-      final rawOrders = data['orders'] as List<dynamic>? ?? const [];
-      return rawOrders
-          .map((order) => FoodOrder.fromMap(Map<String, dynamic>.from(order as Map)))
-          .toList();
-    } catch (_) {
-      // Same reasoning as loadCartItems — an incompatible shape from an
-      // earlier app version isn't worth crashing startup over.
-      await box.delete('orders');
       return const [];
     }
   }

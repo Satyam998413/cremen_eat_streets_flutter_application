@@ -1,25 +1,13 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/food_order.dart';
 
-class OrderState extends Equatable {
-  final List<FoodOrder> orders;
-  final FoodOrder? activeOrder;
+part 'order_state.freezed.dart';
 
-  const OrderState({
-    this.orders = const [],
-    this.activeOrder,
-  });
-
-  OrderState copyWith({
-    List<FoodOrder>? orders,
-    FoodOrder? activeOrder,
-  }) {
-    return OrderState(
-      orders: orders ?? this.orders,
-      activeOrder: activeOrder ?? this.activeOrder,
-    );
-  }
-
-  @override
-  List<Object?> get props => [orders, activeOrder];
+@freezed
+sealed class OrderState with _$OrderState {
+  const factory OrderState.initial() = OrderInitial;
+  const factory OrderState.loading() = OrderLoading;
+  const factory OrderState.historyLoaded(List<FoodOrder> orders) = OrderHistoryLoaded;
+  const factory OrderState.detailLoaded(FoodOrder order) = OrderDetailLoaded;
+  const factory OrderState.failure(String message) = OrderFailure;
 }

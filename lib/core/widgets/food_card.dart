@@ -91,23 +91,30 @@ class _FoodCardState extends State<FoodCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image Stack with Badges
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(19)),
-                    child: ResponsiveProductImage(
-                      imageUrl: widget.product.primaryImageUrl,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(19),
+              // flex (not a fixed pixel height) — GridView's childAspectRatio
+              // combined with a width-driven crossAxisCount means this card's
+              // total height varies a lot across window sizes; a fixed image
+              // height starves the details section below it at narrower
+              // layouts. Expanded here and below always sum to exactly the
+              // available height, so neither can overflow regardless of size.
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(19)),
+                      child: ResponsiveProductImage(
+                        imageUrl: widget.product.primaryImageUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(19),
+                        ),
+                        fallbackColor: AppColors.brandPrimary.withValues(alpha: 0.12),
                       ),
-                      fallbackColor: AppColors.brandPrimary.withValues(alpha: 0.12),
                     ),
-                  ),
                   if (widget.product.isVeg != null)
                     Positioned(
                       top: 8,
@@ -173,10 +180,12 @@ class _FoodCardState extends State<FoodCard>
                             curve: Curves.easeInOut,
                           ),
                     ),
-                ],
+                  ],
+                ),
               ),
               // Details
               Expanded(
+                flex: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -220,12 +229,16 @@ class _FoodCardState extends State<FoodCard>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '₹${widget.product.basePrice.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.brandPrimary,
+                          Flexible(
+                            child: Text(
+                              '₹${widget.product.basePrice.toStringAsFixed(0)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.brandPrimary,
+                              ),
                             ),
                           ),
                           _AddButton(onTap: widget.onAddTap),

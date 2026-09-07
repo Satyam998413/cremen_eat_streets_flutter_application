@@ -15,6 +15,7 @@ sealed class AuthEvent with _$AuthEvent {
   const factory AuthEvent.passwordResetRequested(String email) = AuthPasswordResetRequested;
   const factory AuthEvent.passwordUpdated(String newPassword) = AuthPasswordUpdated;
   const factory AuthEvent.profileCompleted(String fullName, String mobileNumber) = AuthProfileCompleted;
+  const factory AuthEvent.fullNameUpdated(String fullName) = AuthFullNameUpdated;
   const factory AuthEvent.loggedOut() = AuthLoggedOut;
 
   /// Internal — raised whenever the repository's own session stream fires

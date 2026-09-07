@@ -4,22 +4,39 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/order_bloc.dart';
+import '../bloc/order_event.dart';
 import '../bloc/order_state.dart';
 
-class OrderHistoryScreen extends StatelessWidget {
+class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
+
+  @override
+  State<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
+}
+
+class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<OrderBloc>().add(const OrderEvent.historyRequested());
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order History'),
-      ),
+      appBar: AppBar(title: const Text('Order History')),
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
-          if (state.orders.isEmpty) {
+          if (state is OrderLoading || state is OrderInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is OrderFailure) {
+            return Center(child: Text('Could not load your orders: ${state.message}'));
+          }
+          final orders = state is OrderHistoryLoaded ? state.orders : const [];
+          if (orders.isEmpty) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -27,6 +44,8 @@ class OrderHistoryScreen extends StatelessWidget {
                   Icon(Icons.history, size: 64, color: Colors.grey),
                   SizedBox(height: 12),
                   Text('No past orders yet.'),
+                  SizedBox(height: 6),
+                  Text('Log in to see orders placed while signed in.', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ],
               ),
             );
@@ -34,10 +53,10 @@ class OrderHistoryScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: state.orders.length,
+            itemCount: orders.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final order = state.orders[index];
+              final order = orders[index];
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -52,7 +71,7 @@ class OrderHistoryScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          order.id,
+                          order.orderNumber ?? order.id,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         Container(
@@ -86,7 +105,7 @@ class OrderHistoryScreen extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton.icon(
-                        onPressed: () => context.push('/orders/${order.id}'),
+                        onPressed: () => context.push('/orders/${order.publicToken ?? order.id}'),
                         icon: const Icon(Icons.track_changes, size: 16),
                         label: const Text('Track Order'),
                       ),

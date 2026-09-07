@@ -49,6 +49,12 @@ abstract class AuthRepository {
     required String mobileNumber,
   });
 
+  /// Editing a name after profile completion — full_name is a plain column,
+  /// updatable by the owning customer under the existing "self update" RLS
+  /// policy (unlike mobile_number/mobile_verified, which protect_customer_
+  /// profile_columns locks; see completeProfile/verifyCustomerMobile).
+  Future<Result<CustomerProfile>> updateFullName(String fullName);
+
   /// Links any pre-signup guest orders matching this customer's email/phone —
   /// mirrors the web app's `claim_guest_orders` RPC call on every login/signup.
   Future<Result<void>> claimGuestOrders();

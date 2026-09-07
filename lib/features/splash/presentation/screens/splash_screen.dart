@@ -43,9 +43,11 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // Navigate after 3.8 seconds
+    // Navigate after 3.8 seconds — straight to Login (guest access is still
+    // available from there via "Continue as Guest", which routes through
+    // Onboarding's brand intro before landing on the menu).
     Future.delayed(const Duration(milliseconds: 3800), () {
-      if (mounted) context.go('/onboarding');
+      if (mounted) context.go('/login');
     });
   }
 

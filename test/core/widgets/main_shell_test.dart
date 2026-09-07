@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import '../../support/auth_test_support.dart';
 import '../../support/hive_test_utils.dart';
+import '../../support/order_fixtures.dart';
 import '../../support/product_fixtures.dart';
 
 void main() {
@@ -24,7 +25,7 @@ void main() {
       providers: [
         BlocProvider<CatalogBloc>(create: (_) => CatalogBloc(buildTestGetCatalogUseCase())),
         BlocProvider<CartBloc>(create: (_) => CartBloc()),
-        BlocProvider<OrderBloc>(create: (_) => OrderBloc()),
+        BlocProvider<OrderBloc>(create: (_) => buildTestOrderBloc()),
         BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
         BlocProvider<AuthBloc>(create: (_) => buildTestAuthBloc()),
       ],

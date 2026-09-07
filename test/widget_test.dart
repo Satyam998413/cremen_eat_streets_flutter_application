@@ -12,7 +12,7 @@ void main() {
     await initTestSupabase();
   });
 
-  testWidgets('App renders onboarding title correctly', (WidgetTester tester) async {
+  testWidgets('App goes straight to Login after Splash', (WidgetTester tester) async {
     await tester.pumpWidget(const CremenEatStreetApp());
     // Splash runs infinitely-repeating particle/ripple animations, so
     // pumpAndSettle() would never return — advance past Splash's fixed
@@ -21,7 +21,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 4000));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('Cremen Eat Streets'), findsOneWidget);
-    expect(find.text('Explore Menu & Order'), findsOneWidget);
+    expect(find.text('Log In'), findsWidgets);
+    expect(find.text('Continue as Guest'), findsOneWidget);
   });
 }

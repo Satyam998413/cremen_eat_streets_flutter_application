@@ -9,66 +9,150 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  final _nameController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  bool _nameInitialized = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _newPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Account')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                if (state case Authenticated(:final profile)) {
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state case AuthError(:final message)) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+          }
+        },
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  if (state case Authenticated(:final profile)) {
+                    if (!_nameInitialized) {
+                      _nameController.text = profile.fullName;
+                      _nameInitialized = true;
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColors.brandPrimary,
+                          child: Text(
+                            profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : '?',
+                            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(profile.email, style: Theme.of(context).textTheme.bodyMedium),
+                        const SizedBox(height: 20),
+                        Text('Profile', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(labelText: 'Full Name'),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: AppButton(
+                            label: 'Save Name',
+                            isLoading: state is AuthLoading,
+                            onPressed: () {
+                              final name = _nameController.text.trim();
+                              if (name.isEmpty) return;
+                              context.read<AuthBloc>().add(AuthEvent.fullNameUpdated(name));
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('Change Password', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _newPasswordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(labelText: 'New password (min. 8 characters)'),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: AppButton(
+                            label: 'Update Password',
+                            isOutlined: true,
+                            isLoading: state is AuthLoading,
+                            onPressed: () {
+                              if (_newPasswordController.text.length < 8) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Password must be at least 8 characters.')),
+                                );
+                                return;
+                              }
+                              context
+                                  .read<AuthBloc>()
+                                  .add(AuthEvent.passwordUpdated(_newPasswordController.text));
+                              _newPasswordController.clear();
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        AppButton(
+                          label: 'Log Out',
+                          isOutlined: true,
+                          onPressed: () => context.read<AuthBloc>().add(const AuthEvent.loggedOut()),
+                        ),
+                      ],
+                    );
+                  }
+                  _nameInitialized = false;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: AppColors.brandPrimary,
-                        child: Text(
-                          profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : '?',
-                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                      Text("You're browsing as a guest.", style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 12),
-                      Text(
-                        profile.fullName.isNotEmpty ? profile.fullName : 'Your Account',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text(profile.email, style: Theme.of(context).textTheme.bodyMedium),
-                      const SizedBox(height: 16),
-                      AppButton(
-                        label: 'Log Out',
-                        isOutlined: true,
-                        onPressed: () => context.read<AuthBloc>().add(const AuthEvent.loggedOut()),
-                      ),
+                      AppButton(label: 'Log In / Sign Up', onPressed: () => context.push('/login')),
                     ],
                   );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("You're browsing as a guest.", style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 12),
-                    AppButton(label: 'Log In / Sign Up', onPressed: () => context.push('/login')),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            Text('Appearance', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            BlocBuilder<ThemeCubit, ThemeMode>(
-              builder: (context, mode) => ThemeModeSwitch(
-                value: mode,
-                onChanged: (newMode) => context.read<ThemeCubit>().changeTheme(newMode),
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              Text('Appearance', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 12),
+              BlocBuilder<ThemeCubit, ThemeMode>(
+                builder: (context, mode) => ThemeModeSwitch(
+                  value: mode,
+                  onChanged: (newMode) => context.read<ThemeCubit>().changeTheme(newMode),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => context.push('/account/returns-policy'),
+                  child: const Text(
+                    'Returns Policy',
+                    style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

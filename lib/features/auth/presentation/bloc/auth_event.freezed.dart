@@ -55,7 +55,7 @@ extension AuthEventPatterns on AuthEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthSessionChecked value)?  sessionChecked,TResult Function( AuthLoggedInWithPassword value)?  loggedInWithPassword,TResult Function( AuthSignedUpWithPassword value)?  signedUpWithPassword,TResult Function( AuthOtpRequested value)?  otpRequested,TResult Function( AuthOtpVerified value)?  otpVerified,TResult Function( AuthGoogleSignInRequested value)?  googleSignInRequested,TResult Function( AuthPasswordResetRequested value)?  passwordResetRequested,TResult Function( AuthPasswordUpdated value)?  passwordUpdated,TResult Function( AuthProfileCompleted value)?  profileCompleted,TResult Function( AuthLoggedOut value)?  loggedOut,TResult Function( AuthExternalSessionChanged value)?  externalSessionChanged,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AuthSessionChecked value)?  sessionChecked,TResult Function( AuthLoggedInWithPassword value)?  loggedInWithPassword,TResult Function( AuthSignedUpWithPassword value)?  signedUpWithPassword,TResult Function( AuthOtpRequested value)?  otpRequested,TResult Function( AuthOtpVerified value)?  otpVerified,TResult Function( AuthGoogleSignInRequested value)?  googleSignInRequested,TResult Function( AuthPasswordResetRequested value)?  passwordResetRequested,TResult Function( AuthPasswordUpdated value)?  passwordUpdated,TResult Function( AuthProfileCompleted value)?  profileCompleted,TResult Function( AuthFullNameUpdated value)?  fullNameUpdated,TResult Function( AuthLoggedOut value)?  loggedOut,TResult Function( AuthExternalSessionChanged value)?  externalSessionChanged,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case AuthSessionChecked() when sessionChecked != null:
@@ -67,7 +67,8 @@ return otpVerified(_that);case AuthGoogleSignInRequested() when googleSignInRequ
 return googleSignInRequested(_that);case AuthPasswordResetRequested() when passwordResetRequested != null:
 return passwordResetRequested(_that);case AuthPasswordUpdated() when passwordUpdated != null:
 return passwordUpdated(_that);case AuthProfileCompleted() when profileCompleted != null:
-return profileCompleted(_that);case AuthLoggedOut() when loggedOut != null:
+return profileCompleted(_that);case AuthFullNameUpdated() when fullNameUpdated != null:
+return fullNameUpdated(_that);case AuthLoggedOut() when loggedOut != null:
 return loggedOut(_that);case AuthExternalSessionChanged() when externalSessionChanged != null:
 return externalSessionChanged(_that);case _:
   return orElse();
@@ -87,7 +88,7 @@ return externalSessionChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthSessionChecked value)  sessionChecked,required TResult Function( AuthLoggedInWithPassword value)  loggedInWithPassword,required TResult Function( AuthSignedUpWithPassword value)  signedUpWithPassword,required TResult Function( AuthOtpRequested value)  otpRequested,required TResult Function( AuthOtpVerified value)  otpVerified,required TResult Function( AuthGoogleSignInRequested value)  googleSignInRequested,required TResult Function( AuthPasswordResetRequested value)  passwordResetRequested,required TResult Function( AuthPasswordUpdated value)  passwordUpdated,required TResult Function( AuthProfileCompleted value)  profileCompleted,required TResult Function( AuthLoggedOut value)  loggedOut,required TResult Function( AuthExternalSessionChanged value)  externalSessionChanged,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AuthSessionChecked value)  sessionChecked,required TResult Function( AuthLoggedInWithPassword value)  loggedInWithPassword,required TResult Function( AuthSignedUpWithPassword value)  signedUpWithPassword,required TResult Function( AuthOtpRequested value)  otpRequested,required TResult Function( AuthOtpVerified value)  otpVerified,required TResult Function( AuthGoogleSignInRequested value)  googleSignInRequested,required TResult Function( AuthPasswordResetRequested value)  passwordResetRequested,required TResult Function( AuthPasswordUpdated value)  passwordUpdated,required TResult Function( AuthProfileCompleted value)  profileCompleted,required TResult Function( AuthFullNameUpdated value)  fullNameUpdated,required TResult Function( AuthLoggedOut value)  loggedOut,required TResult Function( AuthExternalSessionChanged value)  externalSessionChanged,}){
 final _that = this;
 switch (_that) {
 case AuthSessionChecked():
@@ -99,7 +100,8 @@ return otpVerified(_that);case AuthGoogleSignInRequested():
 return googleSignInRequested(_that);case AuthPasswordResetRequested():
 return passwordResetRequested(_that);case AuthPasswordUpdated():
 return passwordUpdated(_that);case AuthProfileCompleted():
-return profileCompleted(_that);case AuthLoggedOut():
+return profileCompleted(_that);case AuthFullNameUpdated():
+return fullNameUpdated(_that);case AuthLoggedOut():
 return loggedOut(_that);case AuthExternalSessionChanged():
 return externalSessionChanged(_that);}
 }
@@ -115,7 +117,7 @@ return externalSessionChanged(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthSessionChecked value)?  sessionChecked,TResult? Function( AuthLoggedInWithPassword value)?  loggedInWithPassword,TResult? Function( AuthSignedUpWithPassword value)?  signedUpWithPassword,TResult? Function( AuthOtpRequested value)?  otpRequested,TResult? Function( AuthOtpVerified value)?  otpVerified,TResult? Function( AuthGoogleSignInRequested value)?  googleSignInRequested,TResult? Function( AuthPasswordResetRequested value)?  passwordResetRequested,TResult? Function( AuthPasswordUpdated value)?  passwordUpdated,TResult? Function( AuthProfileCompleted value)?  profileCompleted,TResult? Function( AuthLoggedOut value)?  loggedOut,TResult? Function( AuthExternalSessionChanged value)?  externalSessionChanged,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AuthSessionChecked value)?  sessionChecked,TResult? Function( AuthLoggedInWithPassword value)?  loggedInWithPassword,TResult? Function( AuthSignedUpWithPassword value)?  signedUpWithPassword,TResult? Function( AuthOtpRequested value)?  otpRequested,TResult? Function( AuthOtpVerified value)?  otpVerified,TResult? Function( AuthGoogleSignInRequested value)?  googleSignInRequested,TResult? Function( AuthPasswordResetRequested value)?  passwordResetRequested,TResult? Function( AuthPasswordUpdated value)?  passwordUpdated,TResult? Function( AuthProfileCompleted value)?  profileCompleted,TResult? Function( AuthFullNameUpdated value)?  fullNameUpdated,TResult? Function( AuthLoggedOut value)?  loggedOut,TResult? Function( AuthExternalSessionChanged value)?  externalSessionChanged,}){
 final _that = this;
 switch (_that) {
 case AuthSessionChecked() when sessionChecked != null:
@@ -127,7 +129,8 @@ return otpVerified(_that);case AuthGoogleSignInRequested() when googleSignInRequ
 return googleSignInRequested(_that);case AuthPasswordResetRequested() when passwordResetRequested != null:
 return passwordResetRequested(_that);case AuthPasswordUpdated() when passwordUpdated != null:
 return passwordUpdated(_that);case AuthProfileCompleted() when profileCompleted != null:
-return profileCompleted(_that);case AuthLoggedOut() when loggedOut != null:
+return profileCompleted(_that);case AuthFullNameUpdated() when fullNameUpdated != null:
+return fullNameUpdated(_that);case AuthLoggedOut() when loggedOut != null:
 return loggedOut(_that);case AuthExternalSessionChanged() when externalSessionChanged != null:
 return externalSessionChanged(_that);case _:
   return null;
@@ -146,7 +149,7 @@ return externalSessionChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  sessionChecked,TResult Function( String email,  String password)?  loggedInWithPassword,TResult Function( String fullName,  String email,  String password)?  signedUpWithPassword,TResult Function( String email)?  otpRequested,TResult Function( String email,  String token)?  otpVerified,TResult Function()?  googleSignInRequested,TResult Function( String email)?  passwordResetRequested,TResult Function( String newPassword)?  passwordUpdated,TResult Function( String fullName,  String mobileNumber)?  profileCompleted,TResult Function()?  loggedOut,TResult Function( CustomerProfile? profile)?  externalSessionChanged,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  sessionChecked,TResult Function( String email,  String password)?  loggedInWithPassword,TResult Function( String fullName,  String email,  String password)?  signedUpWithPassword,TResult Function( String email)?  otpRequested,TResult Function( String email,  String token)?  otpVerified,TResult Function()?  googleSignInRequested,TResult Function( String email)?  passwordResetRequested,TResult Function( String newPassword)?  passwordUpdated,TResult Function( String fullName,  String mobileNumber)?  profileCompleted,TResult Function( String fullName)?  fullNameUpdated,TResult Function()?  loggedOut,TResult Function( CustomerProfile? profile)?  externalSessionChanged,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AuthSessionChecked() when sessionChecked != null:
 return sessionChecked();case AuthLoggedInWithPassword() when loggedInWithPassword != null:
@@ -157,7 +160,8 @@ return otpVerified(_that.email,_that.token);case AuthGoogleSignInRequested() whe
 return googleSignInRequested();case AuthPasswordResetRequested() when passwordResetRequested != null:
 return passwordResetRequested(_that.email);case AuthPasswordUpdated() when passwordUpdated != null:
 return passwordUpdated(_that.newPassword);case AuthProfileCompleted() when profileCompleted != null:
-return profileCompleted(_that.fullName,_that.mobileNumber);case AuthLoggedOut() when loggedOut != null:
+return profileCompleted(_that.fullName,_that.mobileNumber);case AuthFullNameUpdated() when fullNameUpdated != null:
+return fullNameUpdated(_that.fullName);case AuthLoggedOut() when loggedOut != null:
 return loggedOut();case AuthExternalSessionChanged() when externalSessionChanged != null:
 return externalSessionChanged(_that.profile);case _:
   return orElse();
@@ -177,7 +181,7 @@ return externalSessionChanged(_that.profile);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  sessionChecked,required TResult Function( String email,  String password)  loggedInWithPassword,required TResult Function( String fullName,  String email,  String password)  signedUpWithPassword,required TResult Function( String email)  otpRequested,required TResult Function( String email,  String token)  otpVerified,required TResult Function()  googleSignInRequested,required TResult Function( String email)  passwordResetRequested,required TResult Function( String newPassword)  passwordUpdated,required TResult Function( String fullName,  String mobileNumber)  profileCompleted,required TResult Function()  loggedOut,required TResult Function( CustomerProfile? profile)  externalSessionChanged,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  sessionChecked,required TResult Function( String email,  String password)  loggedInWithPassword,required TResult Function( String fullName,  String email,  String password)  signedUpWithPassword,required TResult Function( String email)  otpRequested,required TResult Function( String email,  String token)  otpVerified,required TResult Function()  googleSignInRequested,required TResult Function( String email)  passwordResetRequested,required TResult Function( String newPassword)  passwordUpdated,required TResult Function( String fullName,  String mobileNumber)  profileCompleted,required TResult Function( String fullName)  fullNameUpdated,required TResult Function()  loggedOut,required TResult Function( CustomerProfile? profile)  externalSessionChanged,}) {final _that = this;
 switch (_that) {
 case AuthSessionChecked():
 return sessionChecked();case AuthLoggedInWithPassword():
@@ -188,7 +192,8 @@ return otpVerified(_that.email,_that.token);case AuthGoogleSignInRequested():
 return googleSignInRequested();case AuthPasswordResetRequested():
 return passwordResetRequested(_that.email);case AuthPasswordUpdated():
 return passwordUpdated(_that.newPassword);case AuthProfileCompleted():
-return profileCompleted(_that.fullName,_that.mobileNumber);case AuthLoggedOut():
+return profileCompleted(_that.fullName,_that.mobileNumber);case AuthFullNameUpdated():
+return fullNameUpdated(_that.fullName);case AuthLoggedOut():
 return loggedOut();case AuthExternalSessionChanged():
 return externalSessionChanged(_that.profile);}
 }
@@ -204,7 +209,7 @@ return externalSessionChanged(_that.profile);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  sessionChecked,TResult? Function( String email,  String password)?  loggedInWithPassword,TResult? Function( String fullName,  String email,  String password)?  signedUpWithPassword,TResult? Function( String email)?  otpRequested,TResult? Function( String email,  String token)?  otpVerified,TResult? Function()?  googleSignInRequested,TResult? Function( String email)?  passwordResetRequested,TResult? Function( String newPassword)?  passwordUpdated,TResult? Function( String fullName,  String mobileNumber)?  profileCompleted,TResult? Function()?  loggedOut,TResult? Function( CustomerProfile? profile)?  externalSessionChanged,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  sessionChecked,TResult? Function( String email,  String password)?  loggedInWithPassword,TResult? Function( String fullName,  String email,  String password)?  signedUpWithPassword,TResult? Function( String email)?  otpRequested,TResult? Function( String email,  String token)?  otpVerified,TResult? Function()?  googleSignInRequested,TResult? Function( String email)?  passwordResetRequested,TResult? Function( String newPassword)?  passwordUpdated,TResult? Function( String fullName,  String mobileNumber)?  profileCompleted,TResult? Function( String fullName)?  fullNameUpdated,TResult? Function()?  loggedOut,TResult? Function( CustomerProfile? profile)?  externalSessionChanged,}) {final _that = this;
 switch (_that) {
 case AuthSessionChecked() when sessionChecked != null:
 return sessionChecked();case AuthLoggedInWithPassword() when loggedInWithPassword != null:
@@ -215,7 +220,8 @@ return otpVerified(_that.email,_that.token);case AuthGoogleSignInRequested() whe
 return googleSignInRequested();case AuthPasswordResetRequested() when passwordResetRequested != null:
 return passwordResetRequested(_that.email);case AuthPasswordUpdated() when passwordUpdated != null:
 return passwordUpdated(_that.newPassword);case AuthProfileCompleted() when profileCompleted != null:
-return profileCompleted(_that.fullName,_that.mobileNumber);case AuthLoggedOut() when loggedOut != null:
+return profileCompleted(_that.fullName,_that.mobileNumber);case AuthFullNameUpdated() when fullNameUpdated != null:
+return fullNameUpdated(_that.fullName);case AuthLoggedOut() when loggedOut != null:
 return loggedOut();case AuthExternalSessionChanged() when externalSessionChanged != null:
 return externalSessionChanged(_that.profile);case _:
   return null;
@@ -754,6 +760,72 @@ class _$AuthProfileCompletedCopyWithImpl<$Res>
   return _then(AuthProfileCompleted(
 null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
 as String,null == mobileNumber ? _self.mobileNumber : mobileNumber // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class AuthFullNameUpdated implements AuthEvent {
+  const AuthFullNameUpdated(this.fullName);
+  
+
+ final  String fullName;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AuthFullNameUpdatedCopyWith<AuthFullNameUpdated> get copyWith => _$AuthFullNameUpdatedCopyWithImpl<AuthFullNameUpdated>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthFullNameUpdated&&(identical(other.fullName, fullName) || other.fullName == fullName));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,fullName);
+
+@override
+String toString() {
+  return 'AuthEvent.fullNameUpdated(fullName: $fullName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AuthFullNameUpdatedCopyWith<$Res> implements $AuthEventCopyWith<$Res> {
+  factory $AuthFullNameUpdatedCopyWith(AuthFullNameUpdated value, $Res Function(AuthFullNameUpdated) _then) = _$AuthFullNameUpdatedCopyWithImpl;
+@useResult
+$Res call({
+ String fullName
+});
+
+
+
+
+}
+/// @nodoc
+class _$AuthFullNameUpdatedCopyWithImpl<$Res>
+    implements $AuthFullNameUpdatedCopyWith<$Res> {
+  _$AuthFullNameUpdatedCopyWithImpl(this._self, this._then);
+
+  final AuthFullNameUpdated _self;
+  final $Res Function(AuthFullNameUpdated) _then;
+
+/// Create a copy of AuthEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? fullName = null,}) {
+  return _then(AuthFullNameUpdated(
+null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

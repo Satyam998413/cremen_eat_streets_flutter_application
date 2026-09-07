@@ -186,6 +186,20 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<CustomerProfile>> updateFullName(String fullName) async {
+    final user = _remote.currentUser;
+    if (user == null) return const Failed(AuthFailure('You are not signed in.'));
+    try {
+      await _remote.updateCustomerFullName(user.id, fullName);
+      return Success(await _loadProfile(user));
+    } on PostgrestException catch (e) {
+      return Failed(UnknownFailure(e.message));
+    } catch (e) {
+      return Failed(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Result<void>> claimGuestOrders() async {
     final user = _remote.currentUser;
     if (user == null) return const Failed(AuthFailure('You are not signed in.'));

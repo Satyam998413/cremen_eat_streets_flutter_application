@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../bloc/auth_bloc.dart';
@@ -9,6 +10,9 @@ import 'forgot_password_screen.dart';
 import 'otp_screen.dart';
 import 'signup_screen.dart';
 
+/// Shown immediately after Splash — login is the app's front door, but
+/// guest checkout is still a real, supported path (the backend allows it),
+/// so it stays reachable via "Continue as Guest" rather than being removed.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -98,6 +102,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text(
                     "Don't have an account? Sign up",
                     style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/onboarding'),
+                  child: const Text(
+                    'Continue as Guest',
+                    style: TextStyle(color: AppColors.textSecondaryLight, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

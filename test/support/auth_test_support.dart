@@ -13,6 +13,7 @@ import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/request_password_reset_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/sign_up_with_password_usecase.dart';
+import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/update_full_name_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/update_password_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/presentation/bloc/auth_bloc.dart';
@@ -45,6 +46,7 @@ AuthBloc buildTestAuthBloc() {
     requestPasswordReset: RequestPasswordResetUseCase(repository),
     updatePassword: UpdatePasswordUseCase(repository),
     completeProfile: CompleteProfileUseCase(repository),
+    updateFullName: UpdateFullNameUseCase(repository),
     claimGuestOrders: ClaimGuestOrdersUseCase(repository),
     logout: LogoutUseCase(repository),
   );

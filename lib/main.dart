@@ -20,6 +20,7 @@ import 'features/auth/domain/usecases/request_otp_usecase.dart';
 import 'features/auth/domain/usecases/request_password_reset_usecase.dart';
 import 'features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'features/auth/domain/usecases/sign_up_with_password_usecase.dart';
+import 'features/auth/domain/usecases/update_full_name_usecase.dart';
 import 'features/auth/domain/usecases/update_password_usecase.dart';
 import 'features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -34,6 +35,10 @@ import 'features/checkout/domain/repositories/checkout_repository.dart';
 import 'features/checkout/domain/usecases/create_order_usecase.dart';
 import 'features/checkout/domain/usecases/verify_payment_usecase.dart';
 import 'features/checkout/presentation/bloc/checkout_bloc.dart';
+import 'features/orders/data/datasources/order_remote_datasource.dart';
+import 'features/orders/data/repositories/order_repository_impl.dart';
+import 'features/orders/domain/usecases/get_order_by_public_token_usecase.dart';
+import 'features/orders/domain/usecases/get_order_history_usecase.dart';
 import 'features/orders/presentation/bloc/order_bloc.dart';
 
 Future<void> main() async {
@@ -59,6 +64,8 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   late final AuthBloc _authBloc;
   late final GetCatalogUseCase _getCatalog;
   late final CheckoutRepository _checkoutRepository;
+  late final GetOrderHistoryUseCase _getOrderHistory;
+  late final GetOrderByPublicTokenUseCase _getOrderByPublicToken;
   late final GoRouter _router;
 
   @override
@@ -67,6 +74,9 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
     _authRepository = AuthRepositoryImpl(AuthRemoteDataSource(Supabase.instance.client));
     _getCatalog = GetCatalogUseCase(CatalogRepositoryImpl(CatalogRemoteDataSource(Supabase.instance.client)));
     _checkoutRepository = CheckoutRepositoryImpl(CheckoutRemoteDataSource(buildDioClient()));
+    final orderRepository = OrderRepositoryImpl(OrderRemoteDataSource(Supabase.instance.client));
+    _getOrderHistory = GetOrderHistoryUseCase(orderRepository);
+    _getOrderByPublicToken = GetOrderByPublicTokenUseCase(orderRepository);
     _authBloc = AuthBloc(
       repository: _authRepository,
       loginWithPassword: LoginWithPasswordUseCase(_authRepository),
@@ -77,6 +87,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
       requestPasswordReset: RequestPasswordResetUseCase(_authRepository),
       updatePassword: UpdatePasswordUseCase(_authRepository),
       completeProfile: CompleteProfileUseCase(_authRepository),
+      updateFullName: UpdateFullNameUseCase(_authRepository),
       claimGuestOrders: ClaimGuestOrdersUseCase(_authRepository),
       logout: LogoutUseCase(_authRepository),
     );
@@ -106,7 +117,10 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
           create: (_) => CartBloc(),
         ),
         BlocProvider<OrderBloc>(
-          create: (_) => OrderBloc(),
+          create: (_) => OrderBloc(
+            getOrderHistory: _getOrderHistory,
+            getOrderByPublicToken: _getOrderByPublicToken,
+          ),
         ),
         BlocProvider<ThemeCubit>(
           create: (_) => ThemeCubit(),

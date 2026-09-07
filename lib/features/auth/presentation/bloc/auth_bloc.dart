@@ -12,6 +12,7 @@ import '../../domain/usecases/request_otp_usecase.dart';
 import '../../domain/usecases/request_password_reset_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_up_with_password_usecase.dart';
+import '../../domain/usecases/update_full_name_usecase.dart';
 import '../../domain/usecases/update_password_usecase.dart';
 import '../../domain/usecases/verify_otp_usecase.dart';
 import 'auth_event.dart';
@@ -28,6 +29,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required RequestPasswordResetUseCase requestPasswordReset,
     required UpdatePasswordUseCase updatePassword,
     required CompleteProfileUseCase completeProfile,
+    required UpdateFullNameUseCase updateFullName,
     required ClaimGuestOrdersUseCase claimGuestOrders,
     required LogoutUseCase logout,
   })  : _repository = repository,
@@ -39,6 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _requestPasswordReset = requestPasswordReset,
         _updatePassword = updatePassword,
         _completeProfile = completeProfile,
+        _updateFullName = updateFullName,
         _claimGuestOrders = claimGuestOrders,
         _logout = logout,
         super(const AuthState.loading()) {
@@ -51,6 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
     on<AuthPasswordUpdated>(_onPasswordUpdated);
     on<AuthProfileCompleted>(_onProfileCompleted);
+    on<AuthFullNameUpdated>(_onFullNameUpdated);
     on<AuthLoggedOut>(_onLoggedOut);
     on<AuthExternalSessionChanged>(_onExternalSessionChanged);
 
@@ -70,6 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RequestPasswordResetUseCase _requestPasswordReset;
   final UpdatePasswordUseCase _updatePassword;
   final CompleteProfileUseCase _completeProfile;
+  final UpdateFullNameUseCase _updateFullName;
   final ClaimGuestOrdersUseCase _claimGuestOrders;
   final LogoutUseCase _logout;
   late final StreamSubscription<CustomerProfile?> _authSubscription;
@@ -160,6 +165,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       CompleteProfileParams(fullName: event.fullName, mobileNumber: event.mobileNumber),
     );
     await _handleProfileResult(result, emit);
+  }
+
+  Future<void> _onFullNameUpdated(AuthFullNameUpdated event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    final result = await _updateFullName(event.fullName);
+    switch (result) {
+      case Success(:final value):
+        emit(_stateFor(value));
+      case Failed(:final failure):
+        emit(AuthState.error(failure.message));
+    }
   }
 
   Future<void> _onLoggedOut(AuthLoggedOut event, Emitter<AuthState> emit) async {

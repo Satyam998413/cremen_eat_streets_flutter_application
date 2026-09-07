@@ -13,6 +13,7 @@ import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/checkout/presentation/bloc/checkout_bloc.dart';
 import '../../features/checkout/presentation/screens/checkout_screen.dart';
 import '../../features/orders/presentation/screens/order_tracking_screen.dart';
+import '../../features/profile/presentation/screens/returns_policy_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../widgets/main_shell_screen.dart';
 import 'go_router_refresh_stream.dart';
@@ -122,6 +123,11 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
         path: '/account',
         name: 'account',
         builder: (context, state) => const MainShellScreen(initialIndex: ShellTab.account),
+      ),
+      GoRoute(
+        path: '/account/returns-policy',
+        name: 'returnsPolicy',
+        builder: (context, state) => const ReturnsPolicyScreen(),
       ),
     ],
   );

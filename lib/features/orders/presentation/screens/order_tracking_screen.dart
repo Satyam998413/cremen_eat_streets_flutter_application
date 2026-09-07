@@ -6,12 +6,27 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../domain/entities/food_order.dart';
 import '../bloc/order_bloc.dart';
+import '../bloc/order_event.dart';
 import '../bloc/order_state.dart';
 
-class OrderTrackingScreen extends StatelessWidget {
+/// [orderId] is actually the order's public_token — every entry point into
+/// this screen (checkout success, order history's "Track Order") passes
+/// that, not the raw orders.id (see OrderRepository.getByPublicToken).
+class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
 
   const OrderTrackingScreen({super.key, required this.orderId});
+
+  @override
+  State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
+}
+
+class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<OrderBloc>().add(OrderEvent.detailRequested(widget.orderId));
+  }
 
   Future<void> _makePhoneCall() async {
     final Uri url = Uri.parse('tel:8948998413');
@@ -30,10 +45,7 @@ class OrderTrackingScreen extends StatelessWidget {
             shape: BoxShape.circle,
             color: isDone || isCurrent ? AppColors.brandPrimary : Colors.grey.shade300,
           ),
-          child: Icon(
-            icon,
-            color: isDone || isCurrent ? Colors.white : Colors.grey.shade600,
-          ),
+          child: Icon(icon, color: isDone || isCurrent ? Colors.white : Colors.grey.shade600),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -48,10 +60,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   color: isDone || isCurrent ? AppColors.brandPrimary : Colors.grey,
                 ),
               ),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 13, color: Colors.grey),
-              ),
+              Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
             ],
           ),
         ),
@@ -62,27 +71,19 @@ class OrderTrackingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Order Status: $orderId'),
-      ),
+      appBar: AppBar(title: const Text('Order Status')),
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
-          final order = state.activeOrder ??
-              state.orders.firstWhere(
-                (o) => o.id == orderId,
-                orElse: () => FoodOrder(
-                  id: orderId,
-                  items: const [],
-                  subtotal: 0,
-                  shippingFee: 0,
-                  totalAmount: 0,
-                  status: OrderStatus.pendingPayment,
-                  orderType: OrderType.pickup,
-                  createdAt: DateTime.now(),
-                  customerName: 'Guest',
-                  customerPhone: '8948998413',
-                ),
-              );
+          if (state is OrderLoading || state is OrderInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is OrderFailure) {
+            return _ErrorView(message: state.message);
+          }
+          if (state is! OrderDetailLoaded) {
+            return const _ErrorView(message: 'Order not found.');
+          }
+          final order = state.order;
 
           if (order.status == OrderStatus.cancelled) {
             return _CancelledView(order: order);
@@ -98,23 +99,19 @@ class OrderTrackingScreen extends StatelessWidget {
                     gradient: AppColors.brandGradient,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(
-                        color: AppColors.brandPrimary.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
+                      BoxShadow(color: AppColors.brandPrimary.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6)),
                     ],
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(Icons.soup_kitchen, size: 60, color: Colors.white),
-                      SizedBox(height: 12),
+                      const Icon(Icons.soup_kitchen, size: 60, color: Colors.white),
+                      const SizedBox(height: 12),
                       Text(
-                        'Creating Magic...',
-                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
+                        order.orderNumber ?? 'Order ${order.id}',
+                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
                       ),
-                      SizedBox(height: 6),
-                      Text(
+                      const SizedBox(height: 6),
+                      const Text(
                         'Our team is preparing your order with fresh ingredients!',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 14),
@@ -130,10 +127,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   order.status == OrderStatus.pendingPayment,
                   Icons.hourglass_top,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
-                ),
+                const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
                   'Order Confirmed',
                   'Payment received, sent to the kitchen',
@@ -141,10 +135,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   order.status == OrderStatus.confirmed,
                   Icons.receipt,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
-                ),
+                const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
                   'Preparing',
                   'Fresh ingredients mixing & frying',
@@ -152,10 +143,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   order.status == OrderStatus.processing,
                   Icons.outdoor_grill,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
-                ),
+                const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
                   order.orderType == OrderType.pickup ? 'Ready for Pickup' : 'Out for Delivery',
                   order.orderType == OrderType.pickup ? 'Visit the cart in Surat' : 'Rider on the way',
@@ -163,10 +151,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   order.status == OrderStatus.dispatched,
                   Icons.local_shipping,
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: SizedBox(height: 24, child: VerticalDivider(thickness: 2)),
-                ),
+                const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
                   'Delivered',
                   'Enjoy your meal!',
@@ -210,15 +195,36 @@ class OrderTrackingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                AppButton(
-                  label: 'Back to Menu',
-                  isOutlined: true,
-                  onPressed: () => context.go('/'),
-                ),
+                AppButton(label: 'Back to Menu', isOutlined: true, onPressed: () => context.go('/')),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppColors.spicyRed),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            AppButton(label: 'Back to Menu', onPressed: () => context.go('/')),
+          ],
+        ),
       ),
     );
   }
