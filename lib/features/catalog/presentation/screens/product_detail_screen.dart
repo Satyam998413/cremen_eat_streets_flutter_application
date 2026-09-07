@@ -4,10 +4,19 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../../../core/widgets/responsive_product_image.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../cart/domain/entities/cart_item.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/entities/review.dart';
+import '../../domain/usecases/get_eligible_review_order_usecase.dart';
+import '../../domain/usecases/get_reviews_usecase.dart';
+import '../../domain/usecases/submit_review_usecase.dart';
+import '../bloc/reviews_bloc.dart';
+import '../bloc/reviews_event.dart';
+import '../bloc/reviews_state.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -22,12 +31,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   String? _selectedVariantLabel;
 
+  late final ReviewsBloc _reviewsBloc;
+  final TextEditingController _reviewCommentController = TextEditingController();
+  int _reviewRating = 5;
+
   @override
   void initState() {
     super.initState();
     if (widget.product.hasVariants) {
       _selectedVariantLabel = widget.product.variants.first.label;
     }
+    _reviewsBloc = ReviewsBloc(
+      getReviews: context.read<GetReviewsUseCase>(),
+      getEligibleReviewOrder: context.read<GetEligibleReviewOrderUseCase>(),
+      submitReview: context.read<SubmitReviewUseCase>(),
+    )..add(ReviewsEvent.loadRequested(widget.product.id));
+  }
+
+  @override
+  void dispose() {
+    _reviewsBloc.close();
+    _reviewCommentController.dispose();
+    super.dispose();
   }
 
   double get _unitPrice {
@@ -45,6 +70,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final product = widget.product;
 
+    return BlocProvider<ReviewsBloc>.value(
+      value: _reviewsBloc,
+      child: _buildScaffold(context, isDark, product),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, bool isDark, Product product) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -179,9 +211,144 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 28),
+              const Divider(),
+              const SizedBox(height: 12),
+              _buildReviewsSection(context, isDark),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context, bool isDark) {
+    return BlocConsumer<ReviewsBloc, ReviewsState>(
+      listener: (context, state) {
+        if (state is ReviewsLoaded && state.submitSucceeded) {
+          _reviewCommentController.clear();
+          setState(() => _reviewRating = 5);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Review submitted — thank you!')),
+          );
+        }
+        if (state is ReviewsLoaded && state.submitError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.submitError!)),
+          );
+        }
+      },
+      builder: (context, state) {
+        return switch (state) {
+          ReviewsLoading() => const Center(child: CircularProgressIndicator()),
+          ReviewsFailure() => const SizedBox.shrink(),
+          ReviewsLoaded(:final reviews, :final canReview, :final isSubmitting) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Reviews (${reviews.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                const SizedBox(height: 12),
+                if (reviews.isEmpty)
+                  Text(
+                    'No reviews yet.',
+                    style: TextStyle(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  )
+                else
+                  ...reviews.map((review) => _ReviewTile(review: review, isDark: isDark)),
+                if (canReview) ...[
+                  const SizedBox(height: 20),
+                  const Text('Leave a Review', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: List.generate(5, (index) {
+                      final starValue = index + 1;
+                      return IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: Icon(
+                          starValue <= _reviewRating ? Icons.star : Icons.star_border,
+                          color: AppColors.brandPrimary,
+                        ),
+                        onPressed: () => setState(() => _reviewRating = starValue),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _reviewCommentController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Share your experience (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  AppButton(
+                    label: 'Submit Review',
+                    isLoading: isSubmitting,
+                    onPressed: () {
+                      final authState = context.read<AuthBloc>().state;
+                      final reviewerName =
+                          authState is Authenticated ? authState.profile.fullName : 'Guest';
+                      context.read<ReviewsBloc>().add(ReviewsEvent.submitRequested(
+                            reviewerName: reviewerName,
+                            rating: _reviewRating,
+                            comment: _reviewCommentController.text.trim().isEmpty
+                                ? null
+                                : _reviewCommentController.text.trim(),
+                          ));
+                    },
+                  ),
+                ],
+              ],
+            ),
+        };
+      },
+    );
+  }
+}
+
+class _ReviewTile extends StatelessWidget {
+  const _ReviewTile({required this.review, required this.isDark});
+
+  final Review review;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(review.reviewerName, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              Row(
+                children: List.generate(5, (index) {
+                  return Icon(
+                    index < review.rating ? Icons.star : Icons.star_border,
+                    size: 14,
+                    color: AppColors.brandPrimary,
+                  );
+                }),
+              ),
+            ],
+          ),
+          if (review.comment != null && review.comment!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              review.comment!,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

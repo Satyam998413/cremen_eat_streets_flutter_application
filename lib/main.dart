@@ -26,8 +26,14 @@ import 'features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
 import 'features/catalog/data/datasources/catalog_remote_datasource.dart';
+import 'features/catalog/data/datasources/reviews_remote_datasource.dart';
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
+import 'features/catalog/data/repositories/reviews_repository_impl.dart';
+import 'features/catalog/domain/repositories/reviews_repository.dart';
 import 'features/catalog/domain/usecases/get_catalog_usecase.dart';
+import 'features/catalog/domain/usecases/get_eligible_review_order_usecase.dart';
+import 'features/catalog/domain/usecases/get_reviews_usecase.dart';
+import 'features/catalog/domain/usecases/submit_review_usecase.dart';
 import 'features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'features/checkout/data/datasources/checkout_remote_datasource.dart';
 import 'features/checkout/data/repositories/checkout_repository_impl.dart';
@@ -66,6 +72,9 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   late final CheckoutRepository _checkoutRepository;
   late final GetOrderHistoryUseCase _getOrderHistory;
   late final GetOrderByPublicTokenUseCase _getOrderByPublicToken;
+  late final GetReviewsUseCase _getReviews;
+  late final GetEligibleReviewOrderUseCase _getEligibleReviewOrder;
+  late final SubmitReviewUseCase _submitReview;
   late final GoRouter _router;
 
   @override
@@ -77,6 +86,11 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
     final orderRepository = OrderRepositoryImpl(OrderRemoteDataSource(Supabase.instance.client));
     _getOrderHistory = GetOrderHistoryUseCase(orderRepository);
     _getOrderByPublicToken = GetOrderByPublicTokenUseCase(orderRepository);
+    final ReviewsRepository reviewsRepository =
+        ReviewsRepositoryImpl(ReviewsRemoteDataSource(Supabase.instance.client));
+    _getReviews = GetReviewsUseCase(reviewsRepository);
+    _getEligibleReviewOrder = GetEligibleReviewOrderUseCase(reviewsRepository);
+    _submitReview = SubmitReviewUseCase(reviewsRepository);
     _authBloc = AuthBloc(
       repository: _authRepository,
       loginWithPassword: LoginWithPasswordUseCase(_authRepository),
@@ -108,33 +122,40 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider<CatalogBloc>(
-          create: (_) => CatalogBloc(_getCatalog),
-        ),
-        BlocProvider<CartBloc>(
-          create: (_) => CartBloc(),
-        ),
-        BlocProvider<OrderBloc>(
-          create: (_) => OrderBloc(
-            getOrderHistory: _getOrderHistory,
-            getOrderByPublicToken: _getOrderByPublicToken,
-          ),
-        ),
-        BlocProvider<ThemeCubit>(
-          create: (_) => ThemeCubit(),
-        ),
-        BlocProvider<AuthBloc>.value(value: _authBloc),
+        RepositoryProvider<GetReviewsUseCase>.value(value: _getReviews),
+        RepositoryProvider<GetEligibleReviewOrderUseCase>.value(value: _getEligibleReviewOrder),
+        RepositoryProvider<SubmitReviewUseCase>.value(value: _submitReview),
       ],
-      child: BlocBuilder<ThemeCubit, ThemeMode>(
-        builder: (context, themeMode) => MaterialApp.router(
-          title: 'Cremen Eat Streets',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          routerConfig: _router,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<CatalogBloc>(
+            create: (_) => CatalogBloc(_getCatalog),
+          ),
+          BlocProvider<CartBloc>(
+            create: (_) => CartBloc(),
+          ),
+          BlocProvider<OrderBloc>(
+            create: (_) => OrderBloc(
+              getOrderHistory: _getOrderHistory,
+              getOrderByPublicToken: _getOrderByPublicToken,
+            ),
+          ),
+          BlocProvider<ThemeCubit>(
+            create: (_) => ThemeCubit(),
+          ),
+          BlocProvider<AuthBloc>.value(value: _authBloc),
+        ],
+        child: BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) => MaterialApp.router(
+            title: 'Cremen Eat Streets',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            routerConfig: _router,
+          ),
         ),
       ),
     );
