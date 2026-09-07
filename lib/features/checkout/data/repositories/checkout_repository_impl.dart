@@ -4,6 +4,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../cart/domain/entities/cart_item.dart';
 import '../../domain/entities/created_order.dart';
+import '../../domain/entities/resolved_address.dart';
 import '../../domain/repositories/checkout_repository.dart';
 import '../datasources/checkout_remote_datasource.dart';
 
@@ -87,6 +88,28 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         return Success(data['publicToken'] as String);
       }
       return Failed(ValidationFailure(data['error'] as String? ?? 'Payment verification failed.'));
+    } on DioException catch (e) {
+      return Failed(NetworkFailure(e.message ?? 'Network error — please check your connection.'));
+    } catch (e) {
+      return Failed(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<ResolvedAddress>> reverseGeocode({required double lat, required double lon}) async {
+    try {
+      final response = await _remote.reverseGeocode(lat: lat, lon: lon);
+      final data = Map<String, dynamic>.from(response.data as Map);
+      if (response.statusCode == 200) {
+        return Success(ResolvedAddress(
+          line1: data['line1'] as String? ?? '',
+          city: data['city'] as String? ?? '',
+          state: data['state'] as String? ?? '',
+          pincode: data['pincode'] as String? ?? '',
+          displayName: data['displayName'] as String? ?? '',
+        ));
+      }
+      return Failed(ValidationFailure(data['error'] as String? ?? 'Could not resolve that location.'));
     } on DioException catch (e) {
       return Failed(NetworkFailure(e.message ?? 'Network error — please check your connection.'));
     } catch (e) {

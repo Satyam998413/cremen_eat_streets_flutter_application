@@ -33,4 +33,19 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'https://cremeneatstreet.shop',
   );
+
+  /// AdMob banner ad unit IDs. These default to Google's public *test* units,
+  /// which always serve a "Test Ad" placeholder and are safe to ship in debug
+  /// builds. Override both with your real AdMob console IDs at release-build
+  /// time via --dart-define, e.g.
+  /// --dart-define=ADMOB_BANNER_AD_UNIT_ID_ANDROID=ca-app-pub-xxxx/yyyy
+  static const admobBannerAdUnitIdAndroid = String.fromEnvironment(
+    'ADMOB_BANNER_AD_UNIT_ID_ANDROID',
+    defaultValue: 'ca-app-pub-3940256099942544/6300978111',
+  );
+
+  static const admobBannerAdUnitIdIOS = String.fromEnvironment(
+    'ADMOB_BANNER_AD_UNIT_ID_IOS',
+    defaultValue: 'ca-app-pub-3940256099942544/2934735716',
+  );
 }

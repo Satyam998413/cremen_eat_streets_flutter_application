@@ -20,4 +20,8 @@ class CheckoutRemoteDataSource {
   Future<Response<dynamic>> verifyPayment(Map<String, dynamic> payload) {
     return _dio.post('/api/checkout/verify', data: payload);
   }
+
+  Future<Response<dynamic>> reverseGeocode({required double lat, required double lon}) {
+    return _dio.get('/api/geocode/reverse', queryParameters: {'lat': lat, 'lon': lon});
+  }
 }

@@ -9,6 +9,7 @@ import '../../features/catalog/presentation/screens/home_screen.dart';
 import '../../features/orders/presentation/screens/order_history_screen.dart';
 import '../../features/profile/presentation/screens/account_screen.dart';
 import '../theme/app_colors.dart';
+import 'banner_ad_widget.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key, required this.initialIndex});
@@ -54,11 +55,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 320),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          child: _buildPage(_selectedIndex),
+        child: Column(
+          children: [
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 320),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: _buildPage(_selectedIndex),
+              ),
+            ),
+            const BannerAdWidget(),
+          ],
         ),
       ),
       bottomNavigationBar: AnimatedSlide(

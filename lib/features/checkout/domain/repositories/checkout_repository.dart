@@ -1,8 +1,15 @@
 import '../../../../core/error/result.dart';
 import '../../../cart/domain/entities/cart_item.dart';
 import '../entities/created_order.dart';
+import '../entities/resolved_address.dart';
 
 abstract class CheckoutRepository {
+  /// Reverse-geocodes a device coordinate into a fillable street address —
+  /// proxied server-side (see cremen_eat_streets `/api/geocode/reverse`) so
+  /// the OpenStreetMap Nominatim User-Agent requirement is met without the
+  /// app needing to know about it.
+  Future<Result<ResolvedAddress>> reverseGeocode({required double lat, required double lon});
+
   /// Server re-prices every line and re-validates fulfillment/shipping rules
   /// — never trust the client-side total (see plans/platform-overview.md,
   /// cremen_eat_streets, Step 10).

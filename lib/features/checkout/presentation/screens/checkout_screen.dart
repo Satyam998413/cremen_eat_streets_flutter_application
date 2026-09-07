@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../../../../core/error/result.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
 import '../../../orders/domain/entities/food_order.dart';
+import '../../domain/usecases/reverse_geocode_usecase.dart';
 import '../bloc/checkout_bloc.dart';
 import '../bloc/checkout_event.dart';
 import '../bloc/checkout_state.dart';
@@ -24,11 +27,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _addressController = TextEditingController();
+  final _line1Controller = TextEditingController();
+  final _line2Controller = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _pincodeController = TextEditingController();
   final _notesController = TextEditingController();
   OrderType _orderType = OrderType.pickup;
   bool _noReturnAck = false;
+  bool _locating = false;
+  String? _locationError;
   late final Razorpay _razorpay;
+  final _locationService = const LocationService();
 
   // razorpay_flutter only ships a native Android/iOS implementation — on
   // every other platform there is no MethodChannel to answer `open()`, so we
@@ -52,7 +62,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _addressController.dispose();
+    _line1Controller.dispose();
+    _line2Controller.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _pincodeController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -164,10 +178,62 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       decoration: const InputDecoration(labelText: 'Email (optional)'),
                     ),
                     if (_orderType == OrderType.delivery) ...[
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Delivery Address in Surat',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          TextButton.icon(
+                            onPressed: _locating ? null : _useCurrentLocation,
+                            icon: _locating
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.my_location, size: 16),
+                            label: Text(_locating ? 'Locating…' : 'Use current location'),
+                          ),
+                        ],
+                      ),
+                      if (_locationError != null) ...[
+                        const SizedBox(height: 4),
+                        Text(_locationError!, style: const TextStyle(color: AppColors.spicyRed, fontSize: 12)),
+                      ],
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _line1Controller,
+                        decoration: const InputDecoration(labelText: 'Address line 1'),
+                      ),
                       const SizedBox(height: 12),
                       TextField(
-                        controller: _addressController,
-                        decoration: const InputDecoration(labelText: 'Delivery Address in Surat'),
+                        controller: _line2Controller,
+                        decoration: const InputDecoration(labelText: 'Address line 2 (optional)'),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _cityController,
+                              decoration: const InputDecoration(labelText: 'City'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _stateController,
+                              decoration: const InputDecoration(labelText: 'State'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _pincodeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Pincode'),
                       ),
                     ],
                     const SizedBox(height: 12),
@@ -257,6 +323,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
+    Map<String, dynamic>? shippingAddress;
+    if (_orderType == OrderType.delivery) {
+      if (_line1Controller.text.trim().isEmpty ||
+          _cityController.text.trim().isEmpty ||
+          _stateController.text.trim().isEmpty ||
+          _pincodeController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill in your full delivery address.')),
+        );
+        return;
+      }
+      shippingAddress = {
+        'line1': _line1Controller.text.trim(),
+        'line2': _line2Controller.text.trim(),
+        'city': _cityController.text.trim(),
+        'state': _stateController.text.trim(),
+        'pincode': _pincodeController.text.trim(),
+      };
+    }
     context.read<CheckoutBloc>().add(CheckoutEvent.submitted(
           items: cartState.items,
           fulfillmentType: _orderType == OrderType.delivery ? 'local_delivery' : 'pickup',
@@ -264,10 +349,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           customerPhone: _phoneController.text.trim(),
           noReturnAck: _noReturnAck,
           customerEmail: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-          shippingAddress:
-              _orderType == OrderType.delivery ? {'line1': _addressController.text.trim()} : null,
+          shippingAddress: shippingAddress,
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         ));
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() {
+      _locating = true;
+      _locationError = null;
+    });
+
+    final positionResult = await _locationService.getCurrentPosition();
+    if (!mounted) return;
+
+    switch (positionResult) {
+      case Failed(:final failure):
+        setState(() {
+          _locating = false;
+          _locationError = failure.message;
+        });
+        return;
+      case Success(:final value):
+        final geocodeResult = await context.read<ReverseGeocodeUseCase>().call(
+              ReverseGeocodeParams(lat: value.latitude, lon: value.longitude),
+            );
+        if (!mounted) return;
+        switch (geocodeResult) {
+          case Failed(:final failure):
+            setState(() {
+              _locating = false;
+              _locationError = failure.message;
+            });
+          case Success(:final value):
+            setState(() {
+              _locating = false;
+              if (value.line1.isNotEmpty) _line1Controller.text = value.line1;
+              if (value.city.isNotEmpty) _cityController.text = value.city;
+              if (value.state.isNotEmpty) _stateController.text = value.state;
+              if (value.pincode.isNotEmpty) _pincodeController.text = value.pincode;
+            });
+        }
+    }
   }
 
   void _onCheckoutSuccess(BuildContext context, String publicToken) {

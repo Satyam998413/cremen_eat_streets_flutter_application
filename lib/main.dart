@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
@@ -39,6 +41,7 @@ import 'features/checkout/data/datasources/checkout_remote_datasource.dart';
 import 'features/checkout/data/repositories/checkout_repository_impl.dart';
 import 'features/checkout/domain/repositories/checkout_repository.dart';
 import 'features/checkout/domain/usecases/create_order_usecase.dart';
+import 'features/checkout/domain/usecases/reverse_geocode_usecase.dart';
 import 'features/checkout/domain/usecases/verify_payment_usecase.dart';
 import 'features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'features/orders/data/datasources/order_remote_datasource.dart';
@@ -52,6 +55,10 @@ Future<void> main() async {
   await HiveStorageService.init();
   await Hive.openBox(ThemeCubit.boxName);
   await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);
+  // AdMob has no web/desktop implementation — only initialize on mobile.
+  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
+    await MobileAds.instance.initialize();
+  }
   runApp(const CremenEatStreetApp());
 }
 
@@ -75,6 +82,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   late final GetReviewsUseCase _getReviews;
   late final GetEligibleReviewOrderUseCase _getEligibleReviewOrder;
   late final SubmitReviewUseCase _submitReview;
+  late final ReverseGeocodeUseCase _reverseGeocode;
   late final GoRouter _router;
 
   @override
@@ -91,6 +99,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
     _getReviews = GetReviewsUseCase(reviewsRepository);
     _getEligibleReviewOrder = GetEligibleReviewOrderUseCase(reviewsRepository);
     _submitReview = SubmitReviewUseCase(reviewsRepository);
+    _reverseGeocode = ReverseGeocodeUseCase(_checkoutRepository);
     _authBloc = AuthBloc(
       repository: _authRepository,
       loginWithPassword: LoginWithPasswordUseCase(_authRepository),
@@ -127,6 +136,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
         RepositoryProvider<GetReviewsUseCase>.value(value: _getReviews),
         RepositoryProvider<GetEligibleReviewOrderUseCase>.value(value: _getEligibleReviewOrder),
         RepositoryProvider<SubmitReviewUseCase>.value(value: _submitReview),
+        RepositoryProvider<ReverseGeocodeUseCase>.value(value: _reverseGeocode),
       ],
       child: MultiBlocProvider(
         providers: [
