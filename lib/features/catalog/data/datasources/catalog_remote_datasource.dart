@@ -7,20 +7,24 @@ class CatalogRemoteDataSource {
 
   final SupabaseClient _client;
 
+  static const _productColumns =
+      'id, product_type, slug, name, subtitle, description, base_price, compare_at_price, '
+      'variants, requires_shipping, is_veg, is_spicy, prep_time_label, rating_avg, rating_count, '
+      'product_media(storage_path, is_primary, alt_text)';
+
   /// Active products with their media, via Postgrest's FK-based embed
   /// (product_media.product_id -> products.id) — one round trip, same rows
   /// the website's public catalog reads.
   Future<List<Map<String, dynamic>>> fetchActiveProducts() async {
-    final rows = await _client
-        .from('products')
-        .select(
-          'id, product_type, slug, name, subtitle, description, base_price, compare_at_price, '
-          'variants, requires_shipping, is_veg, is_spicy, prep_time_label, rating_avg, rating_count, '
-          'product_media(storage_path, is_primary, alt_text)',
-        )
-        .eq('status', 'active')
-        .order('sort_order');
+    final rows = await _client.from('products').select(_productColumns).eq('status', 'active').order('sort_order');
     return List<Map<String, dynamic>>.from(rows as List);
+  }
+
+  /// Looks up a single product by its public `slug` — used to resolve
+  /// `/shop/:slug` deep links (the website's own product-detail URL shape)
+  /// when the app has no in-memory catalog to look the product up from yet.
+  Future<Map<String, dynamic>?> fetchProductBySlug(String slug) {
+    return _client.from('products').select(_productColumns).eq('slug', slug).eq('status', 'active').maybeSingle();
   }
 
   /// Resolves a storage_path into a fetchable URL — synchronous string

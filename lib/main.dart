@@ -31,9 +31,11 @@ import 'features/catalog/data/datasources/catalog_remote_datasource.dart';
 import 'features/catalog/data/datasources/reviews_remote_datasource.dart';
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
 import 'features/catalog/data/repositories/reviews_repository_impl.dart';
+import 'features/catalog/domain/repositories/catalog_repository.dart';
 import 'features/catalog/domain/repositories/reviews_repository.dart';
 import 'features/catalog/domain/usecases/get_catalog_usecase.dart';
 import 'features/catalog/domain/usecases/get_eligible_review_order_usecase.dart';
+import 'features/catalog/domain/usecases/get_product_by_slug_usecase.dart';
 import 'features/catalog/domain/usecases/get_reviews_usecase.dart';
 import 'features/catalog/domain/usecases/submit_review_usecase.dart';
 import 'features/catalog/presentation/bloc/catalog_bloc.dart';
@@ -75,7 +77,9 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   // dependency is wired by hand right here instead.
   late final AuthRepository _authRepository;
   late final AuthBloc _authBloc;
+  late final CatalogRepository _catalogRepository;
   late final GetCatalogUseCase _getCatalog;
+  late final GetProductBySlugUseCase _getProductBySlug;
   late final CheckoutRepository _checkoutRepository;
   late final GetOrderHistoryUseCase _getOrderHistory;
   late final GetOrderByPublicTokenUseCase _getOrderByPublicToken;
@@ -89,7 +93,9 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
   void initState() {
     super.initState();
     _authRepository = AuthRepositoryImpl(AuthRemoteDataSource(Supabase.instance.client));
-    _getCatalog = GetCatalogUseCase(CatalogRepositoryImpl(CatalogRemoteDataSource(Supabase.instance.client)));
+    _catalogRepository = CatalogRepositoryImpl(CatalogRemoteDataSource(Supabase.instance.client));
+    _getCatalog = GetCatalogUseCase(_catalogRepository);
+    _getProductBySlug = GetProductBySlugUseCase(_catalogRepository);
     _checkoutRepository = CheckoutRepositoryImpl(CheckoutRemoteDataSource(buildDioClient()));
     final orderRepository = OrderRepositoryImpl(OrderRemoteDataSource(Supabase.instance.client));
     _getOrderHistory = GetOrderHistoryUseCase(orderRepository);
@@ -137,6 +143,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
         RepositoryProvider<GetEligibleReviewOrderUseCase>.value(value: _getEligibleReviewOrder),
         RepositoryProvider<SubmitReviewUseCase>.value(value: _submitReview),
         RepositoryProvider<ReverseGeocodeUseCase>.value(value: _reverseGeocode),
+        RepositoryProvider<GetProductBySlugUseCase>.value(value: _getProductBySlug),
       ],
       child: MultiBlocProvider(
         providers: [

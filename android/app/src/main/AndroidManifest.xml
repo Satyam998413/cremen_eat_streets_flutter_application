@@ -32,6 +32,29 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Custom scheme — used both for the Supabase Google OAuth
+                 redirect (see googleOAuthRedirectUri in
+                 auth_remote_datasource.dart) and as a deep-link fallback
+                 that works with no server-side verification file. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="com.cremeneatstreet.shop"/>
+            </intent-filter>
+            <!-- Android App Links for the real website's product/order URLs.
+                 autoVerify requires publishing
+                 https://cremeneatstreets.shop/.well-known/assetlinks.json
+                 with this app's release-signing SHA-256 fingerprint — not yet
+                 done (tracked as a manual follow-up), so until then these
+                 links open via the normal chooser instead of auto-opening. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="cremeneatstreets.shop" android:pathPrefix="/shop"/>
+                <data android:scheme="https" android:host="cremeneatstreets.shop" android:pathPrefix="/order"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

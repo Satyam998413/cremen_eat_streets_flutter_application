@@ -22,6 +22,19 @@ class CatalogRepositoryImpl implements CatalogRepository {
     }
   }
 
+  @override
+  Future<Result<Product>> getProductBySlug(String slug) async {
+    try {
+      final row = await _remote.fetchProductBySlug(slug);
+      if (row == null) return const Failed(ValidationFailure('Product not found.'));
+      return Success(_toProduct(row));
+    } on PostgrestException catch (e) {
+      return Failed(NetworkFailure(e.message));
+    } catch (e) {
+      return Failed(UnknownFailure(e.toString()));
+    }
+  }
+
   Product _toProduct(Map<String, dynamic> row) {
     final mediaRows = row['product_media'] as List<dynamic>? ?? const [];
     final media = mediaRows.map((raw) {

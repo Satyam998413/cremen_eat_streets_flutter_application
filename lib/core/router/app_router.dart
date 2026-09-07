@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/catalog/presentation/screens/product_by_slug_screen.dart';
 import '../../features/checkout/presentation/bloc/checkout_bloc.dart';
 import '../../features/checkout/presentation/screens/checkout_screen.dart';
 import '../../features/orders/presentation/screens/order_tracking_screen.dart';
@@ -114,7 +115,7 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
         builder: (context, state) {
           final id = state.pathParameters['id'];
           if (id == null || id.isEmpty) {
-            return const _MissingOrderScreen();
+            return const _MissingRouteParamScreen('Order not found.');
           }
           return OrderTrackingScreen(orderId: id);
         },
@@ -128,6 +129,26 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
         path: '/account/returns-policy',
         name: 'returnsPolicy',
         builder: (context, state) => const ReturnsPolicyScreen(),
+      ),
+      // Deep-link entry points — the website's own public URL shapes
+      // (`/shop/:slug`, `/order/:publicToken`), reachable via the app's
+      // registered custom scheme and (once assetlinks/AASA are published)
+      // Android App Links / iOS Universal Links.
+      GoRoute(
+        path: '/shop/:slug',
+        name: 'productBySlug',
+        builder: (context, state) {
+          final slug = state.pathParameters['slug'];
+          if (slug == null || slug.isEmpty) {
+            return const _MissingRouteParamScreen('Product not found.');
+          }
+          return ProductBySlugScreen(slug: slug);
+        },
+      ),
+      GoRoute(
+        path: '/order/:publicToken',
+        name: 'orderReceipt',
+        redirect: (context, state) => '/orders/${state.pathParameters['publicToken']}',
       ),
     ],
   );
@@ -152,11 +173,13 @@ String? _redirect(AuthState authState, GoRouterState routerState) {
   return _protectedPaths.contains(path) ? '/login' : null;
 }
 
-class _MissingOrderScreen extends StatelessWidget {
-  const _MissingOrderScreen();
+class _MissingRouteParamScreen extends StatelessWidget {
+  const _MissingRouteParamScreen(this.message);
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Order not found.')));
+    return Scaffold(body: Center(child: Text(message)));
   }
 }

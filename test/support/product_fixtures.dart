@@ -1,3 +1,4 @@
+import 'package:cremen_eatstreet_shop_application/core/error/failure.dart';
 import 'package:cremen_eatstreet_shop_application/core/error/result.dart';
 import 'package:cremen_eatstreet_shop_application/features/catalog/domain/entities/product.dart';
 import 'package:cremen_eatstreet_shop_application/features/catalog/domain/entities/review.dart';
@@ -34,6 +35,10 @@ Product buildTestProduct({
 class _EmptyCatalogRepository implements CatalogRepository {
   @override
   Future<Result<List<Product>>> getCatalog() async => const Success([]);
+
+  @override
+  Future<Result<Product>> getProductBySlug(String slug) async =>
+      const Failed(ValidationFailure('Product not found.'));
 }
 
 /// For widget smoke tests that need a CatalogBloc in context but don't
