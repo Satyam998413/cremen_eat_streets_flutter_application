@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -69,7 +70,10 @@ class OnboardingScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  )
+                      .animate()
+                      .slideX(begin: -0.5, duration: 350.ms, curve: Curves.easeOutCubic)
+                      .fadeIn(),
                   const SizedBox(height: 20),
 
                   // Brand Title
@@ -80,7 +84,11 @@ class OnboardingScreen extends StatelessWidget {
                       fontSize: 36,
                       color: AppColors.textPrimaryLight,
                     ),
-                  ),
+                  ).animate(delay: 80.ms).fadeIn(duration: 350.ms).slideY(
+                        begin: 0.2,
+                        duration: 350.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
                   const SizedBox(height: 6),
                   const Text(
                     'Founded by Satyam Baranwal',
@@ -89,7 +97,11 @@ class OnboardingScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: AppColors.brandDark,
                     ),
-                  ),
+                  ).animate(delay: 140.ms).fadeIn(duration: 350.ms).slideY(
+                        begin: 0.2,
+                        duration: 350.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
                   const SizedBox(height: 24),
 
                   // Hero Graphic Box
@@ -126,7 +138,11 @@ class OnboardingScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(
+                        begin: 0.2,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
                   const SizedBox(height: 24),
 
                   // Description
@@ -138,7 +154,11 @@ class OnboardingScreen extends StatelessWidget {
                       color: AppColors.textSecondaryLight,
                       height: 1.4,
                     ),
-                  ),
+                  ).animate(delay: 260.ms).fadeIn(duration: 350.ms).slideY(
+                        begin: 0.2,
+                        duration: 350.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
                   const SizedBox(height: 28),
 
                   // CTAs
@@ -149,7 +169,11 @@ class OnboardingScreen extends StatelessWidget {
                       icon: Icons.restaurant_menu,
                       onPressed: () => context.go('/'),
                     ),
-                  ),
+                  ).animate(delay: 320.ms).fadeIn(duration: 350.ms).slideY(
+                        begin: 0.2,
+                        duration: 350.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +194,7 @@ class OnboardingScreen extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
+                  ).animate(delay: 380.ms).fadeIn(duration: 350.ms),
                 ],
               ),
             ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/empty_state_view.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../../../core/widgets/responsive_product_image.dart';
 import '../bloc/cart_bloc.dart';
@@ -33,19 +35,12 @@ class CartScreen extends StatelessWidget {
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
           if (state.items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.shopping_cart_outlined, size: 80, color: AppColors.brandPrimary),
-                  const SizedBox(height: 16),
-                  const Text('Your cart is empty', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  const Text('Add some delicious Surat street food!'),
-                  const SizedBox(height: 24),
-                  AppButton(label: 'Browse Menu', onPressed: () => context.go('/')),
-                ],
-              ),
+            return EmptyStateView(
+              icon: Icons.shopping_cart_outlined,
+              title: 'Your cart is empty',
+              subtitle: 'Add some delicious Surat street food!',
+              ctaLabel: 'Browse Menu',
+              onCta: () => context.go('/'),
             );
           }
 
@@ -110,7 +105,10 @@ class CartScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    );
+                    )
+                        .animate(delay: Duration(milliseconds: 50 * index))
+                        .fadeIn(duration: 350.ms)
+                        .slideX(begin: 0.1, duration: 350.ms, curve: Curves.easeOutCubic);
                   },
                 ),
               ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/error_state_view.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../domain/entities/food_order.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
@@ -35,7 +38,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     }
   }
 
-  Widget _buildStep(String title, String subtitle, bool isDone, bool isCurrent, IconData icon) {
+  Widget _buildStep(
+    BuildContext context,
+    String title,
+    String subtitle,
+    bool isDone,
+    bool isCurrent,
+    IconData icon,
+    int index,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inactiveCircle = isDark ? AppColors.darkSurface : Colors.grey.shade300;
+    final inactiveIcon = isDark ? AppColors.textSecondaryDark : Colors.grey.shade600;
+    final inactiveText = isDark ? AppColors.textSecondaryDark : Colors.grey;
+
     return Row(
       children: [
         Container(
@@ -43,9 +59,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           height: 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isDone || isCurrent ? AppColors.brandPrimary : Colors.grey.shade300,
+            color: isDone || isCurrent ? AppColors.brandPrimary : inactiveCircle,
           ),
-          child: Icon(icon, color: isDone || isCurrent ? Colors.white : Colors.grey.shade600),
+          child: Icon(icon, color: isDone || isCurrent ? Colors.white : inactiveIcon),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -57,15 +73,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: isDone || isCurrent ? AppColors.brandPrimary : Colors.grey,
+                  color: isDone || isCurrent ? AppColors.brandPrimary : inactiveText,
                 ),
               ),
-              Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text(subtitle, style: TextStyle(fontSize: 13, color: inactiveText)),
             ],
           ),
         ),
       ],
-    );
+    ).animate(delay: Duration(milliseconds: 80 * index)).fadeIn(duration: 350.ms).slideX(begin: -0.1, curve: Curves.easeOutCubic);
   }
 
   @override
@@ -75,18 +91,22 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading || state is OrderInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerStepperSkeleton();
           }
           if (state is OrderFailure) {
-            return _ErrorView(message: state.message);
+            return ErrorStateView(message: state.message, onAction: () => context.go('/'));
           }
           if (state is! OrderDetailLoaded) {
-            return const _ErrorView(message: 'Order not found.');
+            return ErrorStateView(message: 'Order not found.', onAction: () => context.go('/'));
           }
           final order = state.order;
 
           if (order.status == OrderStatus.cancelled) {
-            return _CancelledView(order: order);
+            return ErrorStateView(
+              icon: Icons.cancel_outlined,
+              message: 'This order was cancelled.',
+              onAction: () => context.go('/'),
+            );
           }
 
           return SingleChildScrollView(
@@ -121,43 +141,53 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 ),
                 const SizedBox(height: 28),
                 _buildStep(
+                  context,
                   'Payment Pending',
                   'Waiting for payment confirmation',
                   order.status.index >= OrderStatus.pendingPayment.index,
                   order.status == OrderStatus.pendingPayment,
                   Icons.hourglass_top,
+                  0,
                 ),
                 const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
+                  context,
                   'Order Confirmed',
                   'Payment received, sent to the kitchen',
                   order.status.index >= OrderStatus.confirmed.index,
                   order.status == OrderStatus.confirmed,
                   Icons.receipt,
+                  1,
                 ),
                 const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
+                  context,
                   'Preparing',
                   'Fresh ingredients mixing & frying',
                   order.status.index >= OrderStatus.processing.index,
                   order.status == OrderStatus.processing,
                   Icons.outdoor_grill,
+                  2,
                 ),
                 const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
+                  context,
                   order.orderType == OrderType.pickup ? 'Ready for Pickup' : 'Out for Delivery',
                   order.orderType == OrderType.pickup ? 'Visit the cart in Surat' : 'Rider on the way',
                   order.status.index >= OrderStatus.dispatched.index,
                   order.status == OrderStatus.dispatched,
                   Icons.local_shipping,
+                  3,
                 ),
                 const Padding(padding: EdgeInsets.only(left: 20), child: SizedBox(height: 24, child: VerticalDivider(thickness: 2))),
                 _buildStep(
+                  context,
                   'Delivered',
                   'Enjoy your meal!',
                   order.status == OrderStatus.delivered,
                   order.status == OrderStatus.delivered,
                   Icons.check_circle,
+                  4,
                 ),
                 const SizedBox(height: 32),
                 Container(
@@ -200,56 +230,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: AppColors.spicyRed),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            AppButton(label: 'Back to Menu', onPressed: () => context.go('/')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CancelledView extends StatelessWidget {
-  const _CancelledView({required this.order});
-
-  final FoodOrder order;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cancel_outlined, size: 64, color: AppColors.spicyRed),
-            const SizedBox(height: 12),
-            const Text('This order was cancelled.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 20),
-            AppButton(label: 'Back to Menu', onPressed: () => context.go('/')),
-          ],
-        ),
       ),
     );
   }

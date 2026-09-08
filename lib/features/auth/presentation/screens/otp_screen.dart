@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../bloc/auth_bloc.dart';
@@ -48,37 +49,70 @@ class _OtpScreenState extends State<OtpScreen> {
                       enabled: !codeSent,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(labelText: 'Email'),
-                    ),
+                    ).animate().fadeIn(duration: 350.ms).slideY(
+                          begin: 0.2,
+                          duration: 350.ms,
+                          curve: Curves.easeOutCubic,
+                        ),
                     const SizedBox(height: 16),
-                    if (codeSent) ...[
-                      TextField(
-                        controller: _codeController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        decoration: const InputDecoration(labelText: '6-digit code'),
+                    AnimatedSwitcher(
+                      duration: 300.ms,
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeOutCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.08),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      AppButton(
-                        label: 'Verify',
-                        isLoading: state is AuthLoading,
-                        onPressed: () => context.read<AuthBloc>().add(
-                              AuthEvent.otpVerified(_emailController.text.trim(), _codeController.text.trim()),
+                      child: codeSent
+                          ? Column(
+                              key: const ValueKey('code-step'),
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TextField(
+                                  controller: _codeController,
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 6,
+                                  decoration: const InputDecoration(labelText: '6-digit code'),
+                                ),
+                                const SizedBox(height: 8),
+                                AppButton(
+                                  label: 'Verify',
+                                  isLoading: state is AuthLoading,
+                                  onPressed: () => context.read<AuthBloc>().add(
+                                        AuthEvent.otpVerified(
+                                          _emailController.text.trim(),
+                                          _codeController.text.trim(),
+                                        ),
+                                      ),
+                                ),
+                                TextButton(
+                                  onPressed: () => context.read<AuthBloc>().add(
+                                        AuthEvent.otpRequested(_emailController.text.trim()),
+                                      ),
+                                  child: const Text('Resend code'),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              key: const ValueKey('email-step'),
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                AppButton(
+                                  label: 'Send Code',
+                                  isLoading: state is AuthLoading,
+                                  onPressed: () => context.read<AuthBloc>().add(
+                                        AuthEvent.otpRequested(_emailController.text.trim()),
+                                      ),
+                                ),
+                              ],
                             ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.read<AuthBloc>().add(
-                              AuthEvent.otpRequested(_emailController.text.trim()),
-                            ),
-                        child: const Text('Resend code'),
-                      ),
-                    ] else
-                      AppButton(
-                        label: 'Send Code',
-                        isLoading: state is AuthLoading,
-                        onPressed: () => context.read<AuthBloc>().add(
-                              AuthEvent.otpRequested(_emailController.text.trim()),
-                            ),
-                      ),
+                    ),
                   ],
                 );
               },

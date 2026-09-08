@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -51,7 +52,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: 'New password (min. 8 characters)'),
-                ),
+                ).animate().fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 16),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) => AppButton(
@@ -67,7 +72,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       context.read<AuthBloc>().add(AuthEvent.passwordUpdated(_passwordController.text));
                     },
                   ),
-                ),
+                ).animate(delay: 80.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ],
             ),
           ),

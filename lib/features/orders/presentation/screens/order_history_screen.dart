@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/error_state_view.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../bloc/order_state.dart';
@@ -30,24 +34,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading || state is OrderInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerListSkeleton();
           }
           if (state is OrderFailure) {
-            return Center(child: Text('Could not load your orders: ${state.message}'));
+            return ErrorStateView(
+              message: 'Could not load your orders: ${state.message}',
+              actionLabel: 'Retry',
+              onAction: () => context.read<OrderBloc>().add(const OrderEvent.historyRequested()),
+            );
           }
           final orders = state is OrderHistoryLoaded ? state.orders : const [];
           if (orders.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey),
-                  SizedBox(height: 12),
-                  Text('No past orders yet.'),
-                  SizedBox(height: 6),
-                  Text('Log in to see orders placed while signed in.', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                ],
-              ),
+            return const EmptyStateView(
+              icon: Icons.history,
+              title: 'No past orders yet.',
+              subtitle: 'Log in to see orders placed while signed in.',
             );
           }
 
@@ -112,7 +113,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     ),
                   ],
                 ),
-              );
+              )
+                  .animate(delay: Duration(milliseconds: 60 * index))
+                  .fadeIn(duration: 350.ms)
+                  .slideY(begin: 0.2, duration: 350.ms, curve: Curves.easeOutCubic);
             },
           );
         },

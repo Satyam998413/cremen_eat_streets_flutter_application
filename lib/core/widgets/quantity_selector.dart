@@ -30,12 +30,17 @@ class QuantitySelector extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             padding: EdgeInsets.zero,
           ),
-          Text(
-            '$quantity',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: AppColors.brandPrimary,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+            child: Text(
+              '$quantity',
+              key: ValueKey(quantity),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.brandPrimary,
+              ),
             ),
           ),
           IconButton(

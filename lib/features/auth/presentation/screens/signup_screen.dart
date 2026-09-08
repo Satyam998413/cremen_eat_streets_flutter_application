@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../bloc/auth_bloc.dart';
@@ -68,19 +69,31 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Full Name'),
-                ),
+                ).animate().fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(labelText: 'Email'),
-                ),
+                ).animate(delay: 80.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: 'Password (min. 8 characters)'),
-                ),
+                ).animate(delay: 150.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 20),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) => AppButton(
@@ -88,13 +101,21 @@ class _SignupScreenState extends State<SignupScreen> {
                     isLoading: state is AuthLoading,
                     onPressed: () => _submit(context),
                   ),
-                ),
+                ).animate(delay: 220.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => context.read<AuthBloc>().add(const AuthEvent.googleSignInRequested()),
                   icon: const Icon(Icons.g_mobiledata, size: 28),
                   label: const Text('Continue with Google'),
-                ),
+                ).animate(delay: 280.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ],
             ),
           ),

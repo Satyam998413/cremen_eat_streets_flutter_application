@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -51,13 +52,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(labelText: 'Email'),
-                ),
+                ).animate().fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: 'Password'),
-                ),
+                ).animate(delay: 80.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -66,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: const Text('Forgot password?'),
                   ),
-                ),
+                ).animate(delay: 150.ms).fadeIn(duration: 350.ms),
                 const SizedBox(height: 12),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) => AppButton(
@@ -79,7 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                   ),
-                ),
+                ).animate(delay: 220.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 AppButton(
                   label: 'Log In With a Code Instead',
@@ -87,13 +100,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const OtpScreen()),
                   ),
-                ),
+                ).animate(delay: 280.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () => context.read<AuthBloc>().add(const AuthEvent.googleSignInRequested()),
                   icon: const Icon(Icons.g_mobiledata, size: 28),
                   label: const Text('Continue with Google'),
-                ),
+                ).animate(delay: 340.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => Navigator.of(context).push(
@@ -103,14 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     "Don't have an account? Sign up",
                     style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
                   ),
-                ),
+                ).animate(delay: 400.ms).fadeIn(duration: 350.ms),
                 TextButton(
                   onPressed: () => context.go('/onboarding'),
                   child: const Text(
                     'Continue as Guest',
                     style: TextStyle(color: AppColors.textSecondaryLight, fontWeight: FontWeight.w600),
                   ),
-                ),
+                ).animate(delay: 450.ms).fadeIn(duration: 350.ms),
               ],
             ),
           ),

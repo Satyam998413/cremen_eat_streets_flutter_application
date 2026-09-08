@@ -25,6 +25,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 4000));
     await tester.pump(const Duration(milliseconds: 300));
+    // By now Splash (and its infinite particle/ripple animation) is
+    // unmounted and Login is showing. Login's own entrance animations
+    // schedule a short one-shot flutter_animate restart-batching Timer that
+    // a plain pump() never fires (it needs the fake clock to actually move
+    // forward) — a short, bounded pumpAndSettle flushes it without risking
+    // the hang a default/unbounded one would if anything were still
+    // genuinely repeating.
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 200),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 5),
+    );
 
     expect(find.text('Log In'), findsWidgets);
     expect(find.text('Continue as Guest'), findsOneWidget);

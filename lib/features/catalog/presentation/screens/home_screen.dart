@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/category_chip.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/error_state_view.dart';
 import '../../../../core/widgets/food_card.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../cart/domain/entities/cart_item.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
@@ -130,21 +133,20 @@ class _HomeScreenState extends State<HomeScreen> {
             child: BlocBuilder<CatalogBloc, CatalogState>(
               builder: (context, state) {
                 if (state is CatalogLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const ShimmerGridSkeleton();
                 } else if (state is CatalogFailure) {
-                  return Center(child: Text('Could not load the menu: ${state.message}'));
+                  return ErrorStateView(
+                    message: 'Could not load the menu: ${state.message}',
+                    icon: Icons.wifi_off_rounded,
+                    onAction: () => context.read<CatalogBloc>().add(const CatalogEvent.requested()),
+                    actionLabel: 'Retry',
+                  );
                 } else if (state is CatalogLoaded) {
                   final products = state.filteredProducts;
                   if (products.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.search_off, size: 64, color: AppColors.brandPrimary),
-                          const SizedBox(height: 12),
-                          const Text('No items match your search.', style: TextStyle(fontWeight: FontWeight.w600)),
-                        ],
-                      ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.8, 0.8)),
+                    return const EmptyStateView(
+                      icon: Icons.search_off,
+                      title: 'No items match your search.',
                     );
                   }
 

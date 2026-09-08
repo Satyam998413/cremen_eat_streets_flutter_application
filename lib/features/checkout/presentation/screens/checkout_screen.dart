@@ -178,65 +178,79 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(labelText: 'Email (optional)'),
                     ),
-                    if (_orderType == OrderType.delivery) ...[
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Delivery Address in Surat',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          TextButton.icon(
-                            onPressed: _locating ? null : _useCurrentLocation,
-                            icon: _locating
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.my_location, size: 16),
-                            label: Text(_locating ? 'Locating…' : 'Use current location'),
-                          ),
-                        ],
-                      ),
-                      if (_locationError != null) ...[
-                        const SizedBox(height: 4),
-                        Text(_locationError!, style: const TextStyle(color: AppColors.spicyRed, fontSize: 12)),
-                      ],
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _line1Controller,
-                        decoration: const InputDecoration(labelText: 'Address line 1'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _line2Controller,
-                        decoration: const InputDecoration(labelText: 'Address line 2 (optional)'),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _cityController,
-                              decoration: const InputDecoration(labelText: 'City'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: _stateController,
-                              decoration: const InputDecoration(labelText: 'State'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _pincodeController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Pincode'),
-                      ),
-                    ],
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.topCenter,
+                      child: _orderType == OrderType.delivery
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Delivery Address in Surat',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    TextButton.icon(
+                                      onPressed: _locating ? null : _useCurrentLocation,
+                                      icon: AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 200),
+                                        child: _locating
+                                            ? const SizedBox(
+                                                key: ValueKey('locating'),
+                                                width: 14,
+                                                height: 14,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : const Icon(Icons.my_location, size: 16, key: ValueKey('locate-icon')),
+                                      ),
+                                      label: Text(_locating ? 'Locating…' : 'Use current location'),
+                                    ),
+                                  ],
+                                ),
+                                if (_locationError != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(_locationError!, style: const TextStyle(color: AppColors.spicyRed, fontSize: 12)),
+                                ],
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _line1Controller,
+                                  decoration: const InputDecoration(labelText: 'Address line 1'),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _line2Controller,
+                                  decoration: const InputDecoration(labelText: 'Address line 2 (optional)'),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _cityController,
+                                        decoration: const InputDecoration(labelText: 'City'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _stateController,
+                                        decoration: const InputDecoration(labelText: 'State'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _pincodeController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(labelText: 'Pincode'),
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _notesController,

@@ -1,5 +1,5 @@
 name: cremen_eatstreet_shop_application
-description: "A new Flutter project."
+description: "Cremen Eat Streets — order authentic Surat street food for pickup or delivery."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -50,6 +50,9 @@ dependencies:
   google_mobile_ads: ^9.1.0
   get_it: ^9.2.1
   injectable: ^3.0.0
+  animations: ^2.0.11
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +72,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
   injectable_generator: ^3.0.2
+  image: ^4.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -112,16 +116,21 @@ flutter:
 
 # `dart run flutter_launcher_icons` regenerates the launcher icon on every
 # platform from this one source image (the real Cremen Eat Streets logo,
-# already 1024x1024). Not adaptive-icon split (background/foreground layers)
-# because the source has its brand circle baked in right up to the edges —
-# a proper adaptive foreground needs safe-zone padding this asset doesn't
-# have, so a plain (non-adaptive) icon avoids the launcher mask cropping it.
+# already 1024x1024). `image_path` (legacy square icon) still backs iOS,
+# Windows, and pre-26 Android — but Android 8+ launchers mask a square icon
+# into a circle/squircle, which crops this logo's brand ring since it runs
+# edge-to-edge with no safe-zone padding. `adaptive_icon_foreground` is a
+# separately generated version of the same logo scaled to ~66% and centered
+# on a transparent canvas (see tool/generate_adaptive_icon.dart) so Android's
+# own mask has margin to crop into instead of cutting into the logo itself.
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/cremen_logo.jpg"
   min_sdk_android: 21
   remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/cremen_logo_adaptive_fg.png"
   windows:
     generate: true
     image_path: "assets/images/cremen_logo.jpg"

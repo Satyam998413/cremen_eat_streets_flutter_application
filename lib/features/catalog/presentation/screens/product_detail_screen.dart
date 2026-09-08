@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../../../core/widgets/responsive_product_image.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -94,6 +96,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   fit: BoxFit.cover,
                   borderRadius: BorderRadius.circular(20),
                   fallbackColor: AppColors.brandPrimary.withValues(alpha: 0.12),
+                  heroTag: 'product-image-${product.id}',
                 ),
               ),
               const SizedBox(height: 16),
@@ -204,11 +207,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                 ],
-              ),
+              ).animate(delay: 150.ms).fadeIn(duration: 350.ms).slideY(begin: 0.15, curve: Curves.easeOutCubic),
               const SizedBox(height: 28),
               const Divider(),
               const SizedBox(height: 12),
-              _buildReviewsSection(context, isDark),
+              _buildReviewsSection(context, isDark)
+                  .animate(delay: 220.ms)
+                  .fadeIn(duration: 350.ms)
+                  .slideY(begin: 0.1, curve: Curves.easeOutCubic),
             ],
           ),
         ),
@@ -234,7 +240,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       },
       builder: (context, state) {
         return switch (state) {
-          ReviewsLoading() => const Center(child: CircularProgressIndicator()),
+          ReviewsLoading() => const ShimmerListSkeleton(itemCount: 3, rowHeight: 56),
           ReviewsFailure() => const SizedBox.shrink(),
           ReviewsLoaded(:final reviews, :final canReview, :final isSubmitting) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,

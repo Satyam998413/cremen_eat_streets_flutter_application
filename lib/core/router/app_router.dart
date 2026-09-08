@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -39,6 +40,24 @@ const _authOnlyPaths = {'/login', '/login/otp', '/signup', '/forgot-password'};
 
 /// Screens that require a logged-in customer.
 const _protectedPaths = {'/account'};
+
+/// Wraps a route's screen in a Material "fade through" transition (the
+/// recommended motion for navigating between unrelated destinations) instead
+/// of go_router's default platform page transition, for a consistent
+/// branded push/pop feel on the routes below that aren't tab switches.
+CustomTransitionPage<void> _fadeThroughPage(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeThroughTransition(
+        animation: animation,
+        secondaryAnimation: secondaryAnimation,
+        child: child,
+      );
+    },
+  );
+}
 
 GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckoutBloc) {
   return GoRouter(
@@ -84,7 +103,7 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/complete-profile',
         name: 'completeProfile',
-        builder: (context, state) => const CompleteProfileScreen(),
+        pageBuilder: (context, state) => _fadeThroughPage(state, const CompleteProfileScreen()),
       ),
       GoRoute(
         path: '/',
@@ -99,9 +118,12 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/checkout',
         name: 'checkout',
-        builder: (context, state) => BlocProvider<CheckoutBloc>(
-          create: (_) => createCheckoutBloc(),
-          child: const CheckoutScreen(),
+        pageBuilder: (context, state) => _fadeThroughPage(
+          state,
+          BlocProvider<CheckoutBloc>(
+            create: (_) => createCheckoutBloc(),
+            child: const CheckoutScreen(),
+          ),
         ),
       ),
       GoRoute(
@@ -112,12 +134,12 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/orders/:id',
         name: 'orderTracking',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final id = state.pathParameters['id'];
-          if (id == null || id.isEmpty) {
-            return const _MissingRouteParamScreen('Order not found.');
-          }
-          return OrderTrackingScreen(orderId: id);
+          final child = (id == null || id.isEmpty)
+              ? const _MissingRouteParamScreen('Order not found.')
+              : OrderTrackingScreen(orderId: id);
+          return _fadeThroughPage(state, child);
         },
       ),
       GoRoute(
@@ -128,7 +150,7 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/account/returns-policy',
         name: 'returnsPolicy',
-        builder: (context, state) => const ReturnsPolicyScreen(),
+        pageBuilder: (context, state) => _fadeThroughPage(state, const ReturnsPolicyScreen()),
       ),
       // Deep-link entry points — the website's own public URL shapes
       // (`/shop/:slug`, `/order/:publicToken`), reachable via the app's
@@ -137,12 +159,12 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/shop/:slug',
         name: 'productBySlug',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final slug = state.pathParameters['slug'];
-          if (slug == null || slug.isEmpty) {
-            return const _MissingRouteParamScreen('Product not found.');
-          }
-          return ProductBySlugScreen(slug: slug);
+          final child = (slug == null || slug.isEmpty)
+              ? const _MissingRouteParamScreen('Product not found.')
+              : ProductBySlugScreen(slug: slug);
+          return _fadeThroughPage(state, child);
         },
       ),
       GoRoute(

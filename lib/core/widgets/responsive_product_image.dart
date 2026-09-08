@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ResponsiveProductImage extends StatelessWidget {
   final String imageUrl;
@@ -11,6 +13,11 @@ class ResponsiveProductImage extends StatelessWidget {
   final Color? fallbackColor;
   final IconData fallbackIcon;
 
+  /// When set, wraps the image in a [Hero] with this tag so navigating to a
+  /// screen with a matching tag (e.g. the same product's detail page) gets a
+  /// shared-element transition for free.
+  final String? heroTag;
+
   const ResponsiveProductImage({
     super.key,
     required this.imageUrl,
@@ -22,6 +29,7 @@ class ResponsiveProductImage extends StatelessWidget {
     this.borderRadius,
     this.fallbackColor,
     this.fallbackIcon = Icons.fastfood,
+    this.heroTag,
   });
 
   @override
@@ -31,28 +39,15 @@ class ResponsiveProductImage extends StatelessWidget {
     final bool shouldUseRemote = hasRemoteScheme && imageUrl.trim().isNotEmpty;
 
     final imageWidget = shouldUseRemote
-        ? Image.network(
-            imageUrl,
+        ? CachedNetworkImage(
+            imageUrl: imageUrl,
             width: width,
             height: height,
             fit: fit,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return SizedBox(
-                width: width,
-                height: height,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => _buildFallback(),
+            fadeInDuration: const Duration(milliseconds: 300),
+            fadeInCurve: Curves.easeOut,
+            placeholder: (context, url) => _buildShimmerPlaceholder(context),
+            errorWidget: (context, url, error) => _buildFallback(),
           )
         : Image.asset(
             hasAssetPath ? imageUrl : placeholderAsset,
@@ -62,23 +57,33 @@ class ResponsiveProductImage extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) => _buildFallback(),
           );
 
-    if (height != null || width != null) {
-      return ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.zero,
-        child: SizedBox(
-          width: width,
-          height: height,
-          child: imageWidget,
-        ),
-      );
-    }
+    final clipped = height != null || width != null
+        ? ClipRRect(
+            borderRadius: borderRadius ?? BorderRadius.zero,
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: imageWidget,
+            ),
+          )
+        : ClipRRect(
+            borderRadius: borderRadius ?? BorderRadius.zero,
+            child: AspectRatio(
+              aspectRatio: aspectRatio,
+              child: imageWidget,
+            ),
+          );
 
-    return ClipRRect(
-      borderRadius: borderRadius ?? BorderRadius.zero,
-      child: AspectRatio(
-        aspectRatio: aspectRatio,
-        child: imageWidget,
-      ),
+    if (heroTag == null) return clipped;
+    return Hero(tag: heroTag!, child: clipped);
+  }
+
+  Widget _buildShimmerPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+      child: Container(width: width, height: height, color: Colors.white),
     );
   }
 

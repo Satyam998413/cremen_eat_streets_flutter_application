@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../bloc/auth_bloc.dart';
@@ -49,18 +50,29 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Just need a couple more details to finish setting up your account.'),
+                const Text('Just need a couple more details to finish setting up your account.')
+                    .animate()
+                    .fadeIn(duration: 350.ms)
+                    .slideY(begin: 0.2, duration: 350.ms, curve: Curves.easeOutCubic),
                 const SizedBox(height: 20),
                 TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Full Name'),
-                ),
+                ).animate(delay: 80.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _mobileController,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
-                ),
+                ).animate(delay: 150.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(height: 20),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) => AppButton(
@@ -73,7 +85,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           ),
                         ),
                   ),
-                ),
+                ).animate(delay: 220.ms).fadeIn(duration: 350.ms).slideY(
+                      begin: 0.2,
+                      duration: 350.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ],
             ),
           ),

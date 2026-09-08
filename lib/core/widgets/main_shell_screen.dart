@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_animate/flutter_animate.dart';
@@ -58,10 +59,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
         child: Column(
           children: [
             Expanded(
-              child: AnimatedSwitcher(
+              child: PageTransitionSwitcher(
                 duration: const Duration(milliseconds: 320),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation, secondaryAnimation) => FadeThroughTransition(
+                  animation: animation,
+                  secondaryAnimation: secondaryAnimation,
+                  child: child,
+                ),
                 child: _buildPage(_selectedIndex),
               ),
             ),
@@ -96,6 +100,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     icon: Icons.restaurant_menu_rounded,
                     label: 'Home',
                     selected: _selectedIndex == 0,
+                    isDark: isDark,
                     onTap: () => _onItemTapped(0),
                   ),
                   BlocBuilder<CartBloc, CartState>(
@@ -103,6 +108,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       icon: Icons.shopping_cart_outlined,
                       label: 'Cart',
                       selected: _selectedIndex == 1,
+                      isDark: isDark,
                       onTap: () => _onItemTapped(1),
                       badgeCount: cartState.itemCount,
                     ),
@@ -111,12 +117,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     icon: Icons.receipt_long_rounded,
                     label: 'Orders',
                     selected: _selectedIndex == 2,
+                    isDark: isDark,
                     onTap: () => _onItemTapped(2),
                   ),
                   _NavItem(
                     icon: Icons.person_outline_rounded,
                     label: 'Account',
                     selected: _selectedIndex == 3,
+                    isDark: isDark,
                     onTap: () => _onItemTapped(3),
                   ),
                 ],
@@ -148,6 +156,7 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.selected,
+    required this.isDark,
     required this.onTap,
     this.badgeCount = 0,
   });
@@ -155,12 +164,15 @@ class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool selected;
+  final bool isDark;
   final VoidCallback onTap;
   final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.brandPrimary : AppColors.textSecondaryLight;
+    final color = selected
+        ? AppColors.brandPrimary
+        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
     return Expanded(
       child: Semantics(
         button: true,

@@ -113,6 +113,7 @@ class _FoodCardState extends State<FoodCard>
                           top: Radius.circular(19),
                         ),
                         fallbackColor: AppColors.brandPrimary.withValues(alpha: 0.12),
+                        heroTag: 'product-image-${widget.product.id}',
                       ),
                     ),
                   if (widget.product.isVeg != null)
