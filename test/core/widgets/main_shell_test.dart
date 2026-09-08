@@ -27,15 +27,10 @@ void main() {
   // hang, not a timer, that no amount of pumping resolves. Overriding to a
   // desktop platform hits the widget's own "ads unsupported" gate, exactly
   // like the real (non-Android/iOS) `flutter run -d windows` this was
-  // verified against. Set/reset from inside each test body via
-  // addTearDown — not package:test's own setUp/tearDown — because
-  // TestWidgetsFlutterBinding checks every debug foundation flag is back to
-  // its default as part of finishing that test, before an outer tearDown()
-  // callback would even run.
-  void useDesktopPlatformForAds() {
-    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
-  }
+  // verified against. Reset synchronously at the end of the same test body
+  // (not addTearDown, not package:test's setUp/tearDown) — the binding's
+  // debug-foundation-vars check runs inside _runTestBody itself, before
+  // either of those queues would drain.
 
   Widget buildShell({int initialIndex = 0}) {
     return MultiBlocProvider(
@@ -51,52 +46,63 @@ void main() {
   }
 
   testWidgets('shows all 4 tabs, with no owner/admin entry point', (tester) async {
-    useDesktopPlatformForAds();
-    await tester.pumpWidget(buildShell());
-    // Home's FoodCard grid has an intentionally infinite spicy-badge shimmer
-    // (flutter_animate's `.repeat(reverse: true)`), so pumpAndSettle() would
-    // never return — advance a few bounded frames instead.
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    // flutter_animate's entrance animations (the category chips) schedule a
-    // short one-shot restart-batching Timer that a plain pump() never fires
-    // on its own. NOT pumpAndSettle here — Home's AppBar icon has a genuinely
-    // infinite `.animate(onPlay: (c) => c.repeat(reverse: true))` pulse that
-    // is on screen regardless of catalog data, so pumpAndSettle can never
-    // truly settle and always eventually throws "pumpAndSettle timed out".
-    // A couple of fixed pumps advances real time far enough to flush the
-    // one-shot timer without waiting for the infinite one to "finish".
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump(const Duration(milliseconds: 200));
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      await tester.pumpWidget(buildShell());
+      // Home's FoodCard grid has an intentionally infinite spicy-badge
+      // shimmer (flutter_animate's `.repeat(reverse: true)`), so
+      // pumpAndSettle() would never return — advance a few bounded frames
+      // instead.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      // flutter_animate's entrance animations (the category chips) schedule
+      // a short one-shot restart-batching Timer that a plain pump() never
+      // fires on its own. NOT pumpAndSettle here — Home's AppBar icon has a
+      // genuinely infinite `.animate(onPlay: (c) => c.repeat(reverse:
+      // true))` pulse that is on screen regardless of catalog data, so
+      // pumpAndSettle can never truly settle and always eventually throws
+      // "pumpAndSettle timed out". A couple of fixed pumps advances real
+      // time far enough to flush the one-shot timer without waiting for the
+      // infinite one to "finish".
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Cart'), findsOneWidget);
-    expect(find.text('Orders'), findsOneWidget);
-    expect(find.text('Account'), findsOneWidget);
-    expect(find.textContaining('Owner'), findsNothing);
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Cart'), findsOneWidget);
+      expect(find.text('Orders'), findsOneWidget);
+      expect(find.text('Account'), findsOneWidget);
+      expect(find.textContaining('Owner'), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('tapping Account switches to the Account screen with a theme switch', (tester) async {
-    useDesktopPlatformForAds();
-    await tester.pumpWidget(buildShell());
-    // Home's FoodCard grid has an intentionally infinite spicy-badge shimmer
-    // (flutter_animate's `.repeat(reverse: true)`), so pumpAndSettle() would
-    // never return — advance a few bounded frames instead.
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      await tester.pumpWidget(buildShell());
+      // Home's FoodCard grid has an intentionally infinite spicy-badge
+      // shimmer (flutter_animate's `.repeat(reverse: true)`), so
+      // pumpAndSettle() would never return — advance a few bounded frames
+      // instead.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('Account'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    // Same flutter_animate restart-batching Timer as above, this time from
-    // Account screen's own entrance animations. Fixed pumps, not
-    // pumpAndSettle, for the same reason noted in the first test — this
-    // suite doesn't assume anything about what does or doesn't animate
-    // forever, so it never asks the binding to prove a negative.
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump(const Duration(milliseconds: 200));
+      await tester.tap(find.text('Account'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      // Same flutter_animate restart-batching Timer as above, this time from
+      // Account screen's own entrance animations. Fixed pumps, not
+      // pumpAndSettle, for the same reason noted in the first test — this
+      // suite doesn't assume anything about what does or doesn't animate
+      // forever, so it never asks the binding to prove a negative.
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('Appearance'), findsOneWidget);
-    expect(find.byType(SegmentedButton<ThemeMode>), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.byType(SegmentedButton<ThemeMode>), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }

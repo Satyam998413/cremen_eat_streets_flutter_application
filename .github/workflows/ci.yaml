@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  analyze-and-test:
+    # Pinned to Windows, not ubuntu-latest — this repo's golden tests
+    # (test/core/widgets/golden_test.dart) were captured on Windows, and
+    # font-rendering/anti-aliasing differ enough across OSes that Linux-
+    # rendered frames would never byte-match a Windows-captured golden.
+    # Regenerate goldens on Windows (`flutter test --update-goldens`) if this
+    # job ever needs to move to a different runner OS.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate freezed/injectable code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+  build-android:
+    runs-on: windows-latest
+    needs: analyze-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate freezed/injectable code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Debug build only — a real release build needs this repo's own
+      # signing keystore, which isn't (and shouldn't be) checked in here.
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+  build-windows:
+    runs-on: windows-latest
+    needs: analyze-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate freezed/injectable code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Windows desktop app
+        run: flutter build windows --debug
