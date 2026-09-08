@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../entities/resolved_address.dart';
@@ -10,6 +11,7 @@ class ReverseGeocodeParams {
   final double lon;
 }
 
+@lazySingleton
 class ReverseGeocodeUseCase implements UseCase<ResolvedAddress, ReverseGeocodeParams> {
   const ReverseGeocodeUseCase(this._repository);
 

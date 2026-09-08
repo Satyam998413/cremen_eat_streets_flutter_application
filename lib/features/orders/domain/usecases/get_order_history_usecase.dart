@@ -1,8 +1,10 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../entities/food_order.dart';
 import '../repositories/order_repository.dart';
 
+@lazySingleton
 class GetOrderHistoryUseCase implements UseCase<List<FoodOrder>, NoParams> {
   const GetOrderHistoryUseCase(this._repository);
 

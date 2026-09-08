@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -5,6 +6,7 @@ import '../../domain/entities/product.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../datasources/catalog_remote_datasource.dart';
 
+@LazySingleton(as: CatalogRepository)
 class CatalogRepositoryImpl implements CatalogRepository {
   CatalogRepositoryImpl(this._remote);
 

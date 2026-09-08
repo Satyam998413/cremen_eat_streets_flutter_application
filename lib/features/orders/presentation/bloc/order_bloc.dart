@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../../domain/usecases/get_order_by_public_token_usecase.dart';
@@ -6,6 +7,7 @@ import '../../domain/usecases/get_order_history_usecase.dart';
 import 'order_event.dart';
 import 'order_state.dart';
 
+@lazySingleton
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   OrderBloc({
     required GetOrderHistoryUseCase getOrderHistory,

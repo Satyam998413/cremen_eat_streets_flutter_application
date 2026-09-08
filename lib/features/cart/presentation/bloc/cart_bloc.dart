@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../../../core/services/hive_storage_service.dart';
 import '../../domain/entities/cart_item.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
 
+@lazySingleton
 class CartBloc extends Bloc<CartEvent, CartState> {
   CartBloc() : super(const CartState()) {
     on<CartItemAdded>(_onCartItemAdded);

@@ -1,10 +1,12 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:injectable/injectable.dart';
 import '../error/failure.dart';
 import '../error/result.dart';
 
 /// Wraps geolocator's own permission flow — no separate permission_handler
 /// dependency needed, geolocator already exposes checkPermission/
 /// requestPermission and triggers the native OS prompt itself.
+@lazySingleton
 class LocationService {
   const LocationService();
 

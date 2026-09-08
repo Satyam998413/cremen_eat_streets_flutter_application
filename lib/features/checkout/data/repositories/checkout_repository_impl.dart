@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -8,6 +9,7 @@ import '../../domain/entities/resolved_address.dart';
 import '../../domain/repositories/checkout_repository.dart';
 import '../datasources/checkout_remote_datasource.dart';
 
+@LazySingleton(as: CheckoutRepository)
 class CheckoutRepositoryImpl implements CheckoutRepository {
   CheckoutRepositoryImpl(this._remote);
 

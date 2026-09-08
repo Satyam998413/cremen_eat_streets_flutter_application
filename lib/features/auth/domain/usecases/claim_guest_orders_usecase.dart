@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../repositories/auth_repository.dart';
 
+@lazySingleton
 class ClaimGuestOrdersUseCase implements UseCase<void, NoParams> {
   const ClaimGuestOrdersUseCase(this._repository);
 

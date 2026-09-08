@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/quantity_selector.dart';
@@ -11,9 +12,6 @@ import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/review.dart';
-import '../../domain/usecases/get_eligible_review_order_usecase.dart';
-import '../../domain/usecases/get_reviews_usecase.dart';
-import '../../domain/usecases/submit_review_usecase.dart';
 import '../bloc/reviews_bloc.dart';
 import '../bloc/reviews_event.dart';
 import '../bloc/reviews_state.dart';
@@ -41,11 +39,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (widget.product.hasVariants) {
       _selectedVariantLabel = widget.product.variants.first.label;
     }
-    _reviewsBloc = ReviewsBloc(
-      getReviews: context.read<GetReviewsUseCase>(),
-      getEligibleReviewOrder: context.read<GetEligibleReviewOrderUseCase>(),
-      submitReview: context.read<SubmitReviewUseCase>(),
-    )..add(ReviewsEvent.loadRequested(widget.product.id));
+    _reviewsBloc = getIt<ReviewsBloc>()..add(ReviewsEvent.loadRequested(widget.product.id));
   }
 
   @override

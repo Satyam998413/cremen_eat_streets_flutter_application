@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -38,7 +39,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _locating = false;
   String? _locationError;
   late final Razorpay _razorpay;
-  final _locationService = const LocationService();
+  final _locationService = getIt<LocationService>();
 
   // razorpay_flutter only ships a native Android/iOS implementation — on
   // every other platform there is no MethodChannel to answer `open()`, so we
@@ -371,7 +372,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         });
         return;
       case Success(:final value):
-        final geocodeResult = await context.read<ReverseGeocodeUseCase>().call(
+        final geocodeResult = await getIt<ReverseGeocodeUseCase>().call(
               ReverseGeocodeParams(lat: value.latitude, lon: value.longitude),
             );
         if (!mounted) return;

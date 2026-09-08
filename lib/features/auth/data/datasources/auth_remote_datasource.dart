@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// The custom scheme this app registers on Android/iOS so Supabase's OAuth
@@ -10,6 +11,7 @@ const googleOAuthRedirectUri = 'com.cremeneatstreet.shop://login-callback';
 /// Thin wrapper around the Supabase SDK calls this feature needs. Throws the
 /// SDK's own exceptions (AuthException, PostgrestException) — mapping those
 /// to a typed Failure is the repository's job, not this datasource's.
+@lazySingleton
 class AuthRemoteDataSource {
   AuthRemoteDataSource(this._client);
 

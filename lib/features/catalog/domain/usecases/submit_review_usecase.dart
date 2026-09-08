@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../repositories/reviews_repository.dart';
@@ -18,6 +19,7 @@ class SubmitReviewParams {
   final String? comment;
 }
 
+@lazySingleton
 class SubmitReviewUseCase implements UseCase<void, SubmitReviewParams> {
   const SubmitReviewUseCase(this._repository);
 

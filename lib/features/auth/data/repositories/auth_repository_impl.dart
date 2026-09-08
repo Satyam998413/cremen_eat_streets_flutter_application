@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthException, PostgrestException, User;
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -5,6 +6,7 @@ import '../../domain/entities/customer_profile.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._remote);
 

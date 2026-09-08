@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../entities/customer_profile.dart';
@@ -10,6 +11,7 @@ class VerifyOtpParams {
   final String token;
 }
 
+@lazySingleton
 class VerifyOtpUseCase implements UseCase<CustomerProfile, VerifyOtpParams> {
   const VerifyOtpUseCase(this._repository);
 

@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Thin wrapper around the Supabase calls this feature needs. Throws
 /// PostgrestException — mapping it to a typed Failure is the repository's job.
+@lazySingleton
 class CatalogRemoteDataSource {
   CatalogRemoteDataSource(this._client);
 

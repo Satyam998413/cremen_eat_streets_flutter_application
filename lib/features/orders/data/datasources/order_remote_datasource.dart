@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _orderSelect = 'id, public_token, order_number, status, fulfillment_type, customer_name, '
@@ -6,6 +7,7 @@ const _orderSelect = 'id, public_token, order_number, status, fulfillment_type, 
 
 /// Thin wrapper around the Supabase calls this feature needs. Throws
 /// PostgrestException — mapping it to a typed Failure is the repository's job.
+@lazySingleton
 class OrderRemoteDataSource {
   OrderRemoteDataSource(this._client);
 

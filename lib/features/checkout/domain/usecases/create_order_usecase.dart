@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../../../cart/domain/entities/cart_item.dart';
@@ -26,6 +27,7 @@ class CreateOrderParams {
   final String? notes;
 }
 
+@lazySingleton
 class CreateOrderUseCase implements UseCase<CreatedOrder, CreateOrderParams> {
   const CreateOrderUseCase(this._repository);
 

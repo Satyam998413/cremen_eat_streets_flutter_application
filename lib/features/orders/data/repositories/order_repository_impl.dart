@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/order_line_item.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../datasources/order_remote_datasource.dart';
 
+@LazySingleton(as: OrderRepository)
 class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._remote);
 

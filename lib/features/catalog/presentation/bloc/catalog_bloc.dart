@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../../domain/usecases/get_catalog_usecase.dart';
 import 'catalog_event.dart';
 import 'catalog_state.dart';
 
+@lazySingleton
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   CatalogBloc(this._getCatalog) : super(const CatalogState.loading()) {
     on<CatalogRequested>(_onRequested);

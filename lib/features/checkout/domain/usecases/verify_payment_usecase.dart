@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../repositories/checkout_repository.dart';
@@ -16,6 +17,7 @@ class VerifyPaymentParams {
   final String razorpaySignature;
 }
 
+@lazySingleton
 class VerifyPaymentUseCase implements UseCase<String, VerifyPaymentParams> {
   const VerifyPaymentUseCase(this._repository);
 

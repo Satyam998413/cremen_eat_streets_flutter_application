@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../entities/customer_profile.dart';
@@ -11,6 +12,7 @@ class SignUpParams {
   final String password;
 }
 
+@lazySingleton
 class SignUpWithPasswordUseCase implements UseCase<CustomerProfile?, SignUpParams> {
   const SignUpWithPasswordUseCase(this._repository);
 

@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthException, PostgrestException;
 
 import '../../../../core/error/failure.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/review.dart';
 import '../../domain/repositories/reviews_repository.dart';
 import '../datasources/reviews_remote_datasource.dart';
 
+@LazySingleton(as: ReviewsRepository)
 class ReviewsRepositoryImpl implements ReviewsRepository {
   ReviewsRepositoryImpl(this._remote);
 

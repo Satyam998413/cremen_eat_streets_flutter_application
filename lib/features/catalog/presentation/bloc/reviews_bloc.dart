@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../domain/usecases/get_eligible_review_order_usecase.dart';
 import '../../domain/usecases/get_reviews_usecase.dart';
@@ -6,6 +7,9 @@ import '../../domain/usecases/submit_review_usecase.dart';
 import 'reviews_event.dart';
 import 'reviews_state.dart';
 
+/// `@injectable` (not a singleton) — every `ProductDetailScreen` needs its
+/// own fresh instance scoped to one product, never a shared/reused bloc.
+@injectable
 class ReviewsBloc extends Bloc<ReviewsEvent, ReviewsState> {
   ReviewsBloc({
     required GetReviewsUseCase getReviews,

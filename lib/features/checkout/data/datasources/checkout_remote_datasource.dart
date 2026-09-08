@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 
 /// Thin wrapper around the two custom Next.js checkout routes (see
 /// plans/platform-overview.md, cremen_eat_streets, Step 6b/10). Returns the
 /// raw Dio Response — the repository is what interprets status codes and
 /// error bodies into a typed Result.
+@lazySingleton
 class CheckoutRemoteDataSource {
   CheckoutRemoteDataSource(this._dio);
 

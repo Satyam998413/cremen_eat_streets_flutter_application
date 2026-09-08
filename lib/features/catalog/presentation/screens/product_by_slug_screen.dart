@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/error/result.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/usecases/get_product_by_slug_usecase.dart';
@@ -24,7 +24,7 @@ class _ProductBySlugScreenState extends State<ProductBySlugScreen> {
   @override
   void initState() {
     super.initState();
-    _future = context.read<GetProductBySlugUseCase>().call(widget.slug);
+    _future = getIt<GetProductBySlugUseCase>().call(widget.slug);
   }
 
   @override

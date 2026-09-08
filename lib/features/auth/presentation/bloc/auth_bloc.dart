@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
 import '../../domain/entities/customer_profile.dart';
@@ -18,6 +19,7 @@ import '../../domain/usecases/verify_otp_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
+@lazySingleton
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required AuthRepository repository,

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:cremen_eatstreet_shop_application/core/di/injection.dart';
 import 'package:cremen_eatstreet_shop_application/core/theme/theme_cubit.dart';
 import 'package:cremen_eatstreet_shop_application/main.dart';
 import 'support/auth_test_support.dart';
@@ -10,6 +11,10 @@ void main() {
     await initIsolatedHive();
     await Hive.openBox(ThemeCubit.boxName);
     await initTestSupabase();
+    // CremenEatStreetApp resolves every bloc via getIt now — same real
+    // Supabase client initTestSupabase() just set up, so this wires exactly
+    // what production does, just against the isolated test Hive boxes above.
+    configureDependencies();
   });
 
   testWidgets('App goes straight to Login after Splash', (WidgetTester tester) async {
