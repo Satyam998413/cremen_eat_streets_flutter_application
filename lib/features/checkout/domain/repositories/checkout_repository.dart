@@ -13,6 +13,11 @@ abstract class CheckoutRepository {
   /// Server re-prices every line and re-validates fulfillment/shipping rules
   /// — never trust the client-side total (see plans/platform-overview.md,
   /// cremen_eat_streets, Step 10).
+  ///
+  /// [channel]/[paymentMethod]/[wholesalerId] only affect the request payload
+  /// (and thus server behavior) when [channel] isn't `'retail'` — a retail
+  /// order's payload is byte-for-byte identical to what this app sent before
+  /// the B2B ordering channel existed.
   Future<Result<CreatedOrder>> createOrder({
     required List<CartItem> items,
     required String fulfillmentType,
@@ -22,6 +27,9 @@ abstract class CheckoutRepository {
     String? customerEmail,
     Map<String, dynamic>? shippingAddress,
     String? notes,
+    String channel = 'retail',
+    String paymentMethod = 'razorpay',
+    String? wholesalerId,
   });
 
   /// Returns the order's public_token on success — the key for the

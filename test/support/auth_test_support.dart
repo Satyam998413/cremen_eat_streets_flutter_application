@@ -3,6 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cremen_eatstreet_shop_application/core/config/app_config.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:cremen_eatstreet_shop_application/features/b2b/data/datasources/b2b_remote_datasource.dart';
+import 'package:cremen_eatstreet_shop_application/features/b2b/data/repositories/b2b_repository_impl.dart';
+import 'package:cremen_eatstreet_shop_application/features/b2b/domain/usecases/resolve_account_role_usecase.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/repositories/auth_repository.dart';
 import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/claim_guest_orders_usecase.dart';
@@ -34,8 +37,12 @@ Future<void> initTestSupabase() async {
 
 /// A real AuthBloc wired against the real Supabase client — with no session
 /// present, it starts (and stays, for these UI-smoke-test purposes) unauthenticated.
+/// [resolveAccountRole] is never actually invoked in that state (AuthBloc only
+/// calls it once a real profile exists), so wiring it against the same real
+/// Supabase client is enough — no fake/mock needed.
 AuthBloc buildTestAuthBloc() {
   final AuthRepository repository = AuthRepositoryImpl(AuthRemoteDataSource(Supabase.instance.client));
+  final b2bRepository = B2bRepositoryImpl(B2bRemoteDataSource(Supabase.instance.client));
   return AuthBloc(
     repository: repository,
     loginWithPassword: LoginWithPasswordUseCase(repository),
@@ -49,5 +56,6 @@ AuthBloc buildTestAuthBloc() {
     updateFullName: UpdateFullNameUseCase(repository),
     claimGuestOrders: ClaimGuestOrdersUseCase(repository),
     logout: LogoutUseCase(repository),
+    resolveAccountRole: ResolveAccountRoleUseCase(b2bRepository),
   );
 }

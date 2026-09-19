@@ -46,6 +46,18 @@ import 'package:cremen_eatstreet_shop_application/features/auth/domain/usecases/
     as _i899;
 import 'package:cremen_eatstreet_shop_application/features/auth/presentation/bloc/auth_bloc.dart'
     as _i774;
+import 'package:cremen_eatstreet_shop_application/features/b2b/data/datasources/b2b_remote_datasource.dart'
+    as _i1024;
+import 'package:cremen_eatstreet_shop_application/features/b2b/data/repositories/b2b_repository_impl.dart'
+    as _i416;
+import 'package:cremen_eatstreet_shop_application/features/b2b/domain/repositories/b2b_repository.dart'
+    as _i449;
+import 'package:cremen_eatstreet_shop_application/features/b2b/domain/usecases/get_assigned_wholesalers_usecase.dart'
+    as _i1069;
+import 'package:cremen_eatstreet_shop_application/features/b2b/domain/usecases/resolve_account_role_usecase.dart'
+    as _i547;
+import 'package:cremen_eatstreet_shop_application/features/b2b/presentation/bloc/sales_wholesaler_cubit.dart'
+    as _i338;
 import 'package:cremen_eatstreet_shop_application/features/cart/presentation/bloc/cart_bloc.dart'
     as _i304;
 import 'package:cremen_eatstreet_shop_application/features/catalog/data/datasources/catalog_remote_datasource.dart'
@@ -126,6 +138,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i83.AuthRemoteDataSource>(
       () => _i83.AuthRemoteDataSource(gh<_i454.SupabaseClient>()),
     );
+    gh.lazySingleton<_i1024.B2bRemoteDataSource>(
+      () => _i1024.B2bRemoteDataSource(gh<_i454.SupabaseClient>()),
+    );
     gh.lazySingleton<_i405.CatalogRemoteDataSource>(
       () => _i405.CatalogRemoteDataSource(gh<_i454.SupabaseClient>()),
     );
@@ -171,6 +186,9 @@ extension GetItInjectableX on _i174.GetIt {
         verifyPayment: gh<_i451.VerifyPaymentUseCase>(),
       ),
     );
+    gh.lazySingleton<_i449.B2bRepository>(
+      () => _i416.B2bRepositoryImpl(gh<_i1024.B2bRemoteDataSource>()),
+    );
     gh.lazySingleton<_i1015.OrderRepository>(
       () => _i373.OrderRepositoryImpl(gh<_i974.OrderRemoteDataSource>()),
     );
@@ -189,6 +207,12 @@ extension GetItInjectableX on _i174.GetIt {
         getEligibleReviewOrder: gh<_i809.GetEligibleReviewOrderUseCase>(),
         submitReview: gh<_i543.SubmitReviewUseCase>(),
       ),
+    );
+    gh.lazySingleton<_i1069.GetAssignedWholesalersUseCase>(
+      () => _i1069.GetAssignedWholesalersUseCase(gh<_i449.B2bRepository>()),
+    );
+    gh.lazySingleton<_i547.ResolveAccountRoleUseCase>(
+      () => _i547.ResolveAccountRoleUseCase(gh<_i449.B2bRepository>()),
     );
     gh.lazySingleton<_i611.ClaimGuestOrdersUseCase>(
       () => _i611.ClaimGuestOrdersUseCase(gh<_i842.AuthRepository>()),
@@ -223,6 +247,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i899.VerifyOtpUseCase>(
       () => _i899.VerifyOtpUseCase(gh<_i842.AuthRepository>()),
     );
+    gh.lazySingleton<_i338.SalesWholesalerCubit>(
+      () => _i338.SalesWholesalerCubit(
+        gh<_i1069.GetAssignedWholesalersUseCase>(),
+      ),
+    );
     gh.lazySingleton<_i538.GetOrderByPublicTokenUseCase>(
       () => _i538.GetOrderByPublicTokenUseCase(gh<_i1015.OrderRepository>()),
     );
@@ -243,6 +272,7 @@ extension GetItInjectableX on _i174.GetIt {
         updateFullName: gh<_i1071.UpdateFullNameUseCase>(),
         claimGuestOrders: gh<_i611.ClaimGuestOrdersUseCase>(),
         logout: gh<_i661.LogoutUseCase>(),
+        resolveAccountRole: gh<_i547.ResolveAccountRoleUseCase>(),
       ),
     );
     gh.lazySingleton<_i894.OrderBloc>(

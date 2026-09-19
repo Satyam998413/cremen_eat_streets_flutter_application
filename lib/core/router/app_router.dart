@@ -2,9 +2,11 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/domain/entities/account_role.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/auth/presentation/screens/complete_profile_screen.dart';
+import '../../features/b2b/presentation/screens/b2b_shell_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -38,8 +40,13 @@ const _alwaysPublicPaths = {'/splash', '/onboarding', '/reset-password'};
 /// Screens that make no sense once already logged in.
 const _authOnlyPaths = {'/login', '/login/otp', '/signup', '/forgot-password'};
 
-/// Screens that require a logged-in customer.
-const _protectedPaths = {'/account'};
+/// Screens that require a logged-in account. Unlike the retail catalog/cart/
+/// checkout paths (which deliberately support guest checkout), the B2B home
+/// has no guest concept at all — a salesman/wholesaler role can only ever
+/// come from a real session, so an unauthenticated visitor is sent to
+/// /login rather than seeing an unbranded, effectively-retail-priced
+/// "Wholesale Ordering" screen.
+const _protectedPaths = {'/account', '/b2b'};
 
 /// Wraps a route's screen in a Material "fade through" transition (the
 /// recommended motion for navigating between unrelated destinations) instead
@@ -111,6 +118,11 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
         builder: (context, state) => const MainShellScreen(initialIndex: ShellTab.home),
       ),
       GoRoute(
+        path: '/b2b',
+        name: 'b2bHome',
+        builder: (context, state) => const B2bShellScreen(),
+      ),
+      GoRoute(
         path: '/cart',
         name: 'cart',
         builder: (context, state) => const MainShellScreen(initialIndex: ShellTab.cart),
@@ -176,6 +188,12 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
   );
 }
 
+/// The "home" a signed-in account lands on right after login/session-restore,
+/// and the destination any of [_authOnlyPaths] should bounce to — a
+/// salesman/wholesaler account never sees the retail customer shell's Home
+/// tab (`/`), and vice versa.
+String _homePathFor(AccountRole role) => role == AccountRole.customer ? '/' : '/b2b';
+
 String? _redirect(AuthState authState, GoRouterState routerState) {
   final path = routerState.fullPath ?? routerState.matchedLocation;
   if (_alwaysPublicPaths.contains(path)) return null;
@@ -188,9 +206,14 @@ String? _redirect(AuthState authState, GoRouterState routerState) {
     return '/';
   }
 
-  final isAuthenticated = authState is Authenticated;
-  if (isAuthenticated) {
-    return _authOnlyPaths.contains(path) ? '/' : null;
+  if (authState is Authenticated) {
+    final home = _homePathFor(authState.role);
+    if (_authOnlyPaths.contains(path)) return home;
+    // Cart/checkout/orders/account are shared between retail and B2B — only
+    // the "/" vs "/b2b" catalog entry point differs per role.
+    if (authState.role == AccountRole.customer && path == '/b2b') return '/';
+    if (authState.role != AccountRole.customer && path == '/') return '/b2b';
+    return null;
   }
   return _protectedPaths.contains(path) ? '/login' : null;
 }

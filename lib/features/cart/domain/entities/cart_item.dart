@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/pricing/pricing_resolver.dart';
 import '../../../catalog/domain/entities/product.dart';
 
 class CartItem extends Equatable {
@@ -13,20 +14,27 @@ class CartItem extends Equatable {
   /// no spice-level/extra-cheese/instructions column to persist those against.
   final String? variantLabel;
 
+  /// A snapshot of the pricing tier active at the moment this line was added
+  /// to the cart — always [PricingTier.retail] for an ordinary customer
+  /// (identical to this app's pricing before the B2B channel existed).
+  /// Snapshotting rather than re-resolving live from the current account on
+  /// every read keeps a cart line's price stable for the rest of that
+  /// checkout even if role resolution is still in flight when the item was
+  /// added; there's no real-world path today where the same cart is carried
+  /// across two different account roles anyway (cart isn't server-synced).
+  final PricingTier pricingTier;
+
   const CartItem({
     required this.id,
     required this.product,
     required this.quantity,
     this.variantLabel,
+    this.pricingTier = PricingTier.retail,
   });
 
   double get unitPrice {
-    if (variantLabel != null) {
-      for (final variant in product.variants) {
-        if (variant.label == variantLabel) return variant.price;
-      }
-    }
-    return product.basePrice;
+    return PricingResolver.resolveUnitPrice(product, variantLabel: variantLabel, tier: pricingTier) ??
+        product.basePrice;
   }
 
   double get totalPrice => unitPrice * quantity;
@@ -36,12 +44,14 @@ class CartItem extends Equatable {
     Product? product,
     int? quantity,
     String? variantLabel,
+    PricingTier? pricingTier,
   }) {
     return CartItem(
       id: id ?? this.id,
       product: product ?? this.product,
       quantity: quantity ?? this.quantity,
       variantLabel: variantLabel ?? this.variantLabel,
+      pricingTier: pricingTier ?? this.pricingTier,
     );
   }
 
@@ -51,6 +61,7 @@ class CartItem extends Equatable {
       'product': product.toMap(),
       'quantity': quantity,
       'variantLabel': variantLabel,
+      'pricingTier': pricingTier.name,
     };
   }
 
@@ -60,9 +71,12 @@ class CartItem extends Equatable {
       product: Product.fromMap(Map<String, dynamic>.from(map['product'] as Map)),
       quantity: map['quantity'] as int,
       variantLabel: map['variantLabel'] as String?,
+      // Absent for any cart persisted before this field existed — defaults
+      // to retail, matching that cart's only possible pricing at the time.
+      pricingTier: PricingTier.values.asNameMap()[map['pricingTier'] as String?] ?? PricingTier.retail,
     );
   }
 
   @override
-  List<Object?> get props => [id, product, quantity, variantLabel];
+  List<Object?> get props => [id, product, quantity, variantLabel, pricingTier];
 }

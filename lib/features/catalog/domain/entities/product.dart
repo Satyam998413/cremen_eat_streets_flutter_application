@@ -4,19 +4,29 @@ import 'package:equatable/equatable.dart';
 /// entry of the `products.variants` jsonb array (see
 /// plans/platform-overview.md, cremen_eat_streets, Step 4a).
 class ProductVariant extends Equatable {
-  const ProductVariant({required this.label, required this.price});
+  const ProductVariant({required this.label, required this.price, this.wholesalePrice});
 
   final String label;
   final double price;
 
-  Map<String, dynamic> toMap() => {'label': label, 'price': price};
+  /// Mirrors an optional `wholesalePrice` key the `products.variants` jsonb
+  /// array objects may now carry alongside `label`/`price` (cremen_eat_streets
+  /// B2B pricing) — falls back to [price] when null/absent, same as the
+  /// product-level `wholesale_price` column falls back to `base_price`.
+  final double? wholesalePrice;
+
+  Map<String, dynamic> toMap() => {'label': label, 'price': price, 'wholesalePrice': wholesalePrice};
 
   factory ProductVariant.fromMap(Map<String, dynamic> map) {
-    return ProductVariant(label: map['label'] as String, price: (map['price'] as num).toDouble());
+    return ProductVariant(
+      label: map['label'] as String,
+      price: (map['price'] as num).toDouble(),
+      wholesalePrice: (map['wholesalePrice'] as num?)?.toDouble(),
+    );
   }
 
   @override
-  List<Object?> get props => [label, price];
+  List<Object?> get props => [label, price, wholesalePrice];
 }
 
 class ProductMedia extends Equatable {
@@ -53,6 +63,7 @@ class Product extends Equatable {
     required this.basePrice,
     this.subtitle,
     this.compareAtPrice,
+    this.wholesalePrice,
     this.variants = const [],
     this.requiresShipping = true,
     this.isVeg,
@@ -71,6 +82,11 @@ class Product extends Equatable {
   final String description;
   final double basePrice;
   final double? compareAtPrice;
+
+  /// Mirrors the nullable `products.wholesale_price` column (cremen_eat_streets
+  /// B2B pricing) — falls back to [basePrice] for a salesman/wholesaler
+  /// account when null; irrelevant, and never charged, for a retail customer.
+  final double? wholesalePrice;
   final List<ProductVariant> variants;
   final bool requiresShipping;
   final bool? isVeg;
@@ -98,6 +114,7 @@ class Product extends Equatable {
       'description': description,
       'basePrice': basePrice,
       'compareAtPrice': compareAtPrice,
+      'wholesalePrice': wholesalePrice,
       'variants': variants.map((v) => v.toMap()).toList(),
       'requiresShipping': requiresShipping,
       'isVeg': isVeg,
@@ -119,6 +136,7 @@ class Product extends Equatable {
       description: map['description'] as String? ?? '',
       basePrice: (map['basePrice'] as num).toDouble(),
       compareAtPrice: (map['compareAtPrice'] as num?)?.toDouble(),
+      wholesalePrice: (map['wholesalePrice'] as num?)?.toDouble(),
       variants: (map['variants'] as List<dynamic>? ?? const [])
           .map((v) => ProductVariant.fromMap(Map<String, dynamic>.from(v as Map)))
           .toList(),
@@ -144,6 +162,7 @@ class Product extends Equatable {
         description,
         basePrice,
         compareAtPrice,
+        wholesalePrice,
         variants,
         requiresShipping,
         isVeg,

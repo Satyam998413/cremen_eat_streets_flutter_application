@@ -5,9 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/pricing/wholesale_fee_calculator.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/wholesale_delivery_banner.dart';
+import '../../../auth/domain/entities/account_role.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../b2b/presentation/bloc/sales_wholesaler_cubit.dart';
+import '../../../b2b/presentation/screens/wholesaler_picker_sheet.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
@@ -41,6 +48,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late final Razorpay _razorpay;
   final _locationService = getIt<LocationService>();
 
+  /// 'razorpay' | 'cod' — only ever surfaced/used for a B2B (sales/wholesale)
+  /// order; a retail order always pays via Razorpay, same as before this
+  /// channel existed.
+  String _paymentMethod = 'razorpay';
+
+  /// A salesman's own "ordering for" selection — this single app-scoped
+  /// cubit is shared with the B2B catalog screen, so a choice made there
+  /// already carries over here with no navigation-argument plumbing.
+  /// Irrelevant for a customer or wholesaler account (a wholesaler always
+  /// orders for themselves).
+  final _salesWholesalerCubit = getIt<SalesWholesalerCubit>();
+
   // razorpay_flutter only ships a native Android/iOS implementation — on
   // every other platform there is no MethodChannel to answer `open()`, so we
   // never attempt the call there at all rather than risk an unhandled
@@ -55,6 +74,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _onPaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _onPaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _onExternalWallet);
+
+    // `context.read` (not `watch`) is safe in initState — the MultiBlocProvider
+    // ancestor is already mounted by the time this screen is pushed. Only
+    // triggers a reload if nothing's loaded yet: the B2B catalog screen this
+    // is normally reached from already primed the same singleton cubit.
+    final authState = context.read<AuthBloc>().state;
+    if (authState case Authenticated(role: AccountRole.salesman, profile: final profile)) {
+      if (_salesWholesalerCubit.state.wholesalers.isEmpty && !_salesWholesalerCubit.state.isLoading) {
+        _salesWholesalerCubit.loadFor(profile.id);
+      }
+    }
   }
 
   @override
@@ -106,6 +136,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final role = authState is Authenticated ? authState.role : AccountRole.customer;
+    final channel = role.orderChannel;
+    final isB2B = channel != 'retail';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: MultiBlocListener(
@@ -127,41 +162,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ],
         child: BlocBuilder<CartBloc, CartState>(
           builder: (context, cartState) {
-            final deliveryFee = _orderType == OrderType.delivery ? 20.0 : 0.0;
+            final showAddressFields = isB2B || _orderType == OrderType.delivery;
+            final deliveryFee = isB2B
+                ? WholesaleFeeCalculator.calcDeliveryFee(cartState.items.map((i) => i.quantity))
+                : (_orderType == OrderType.delivery ? 20.0 : 0.0);
             return SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Order Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text('Pickup')),
-                            selected: _orderType == OrderType.pickup,
-                            selectedColor: AppColors.brandPrimary,
-                            onSelected: (v) {
-                              if (v) setState(() => _orderType = OrderType.pickup);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text('Direct Delivery')),
-                            selected: _orderType == OrderType.delivery,
-                            selectedColor: AppColors.brandPrimary,
-                            onSelected: (v) {
-                              if (v) setState(() => _orderType = OrderType.delivery);
-                            },
-                          ),
-                        ),
+                    if (isB2B) ...[
+                      if (role == AccountRole.salesman) ...[
+                        WholesalerBanner(cubit: _salesWholesalerCubit),
+                        const SizedBox(height: 12),
                       ],
-                    ),
-                    const SizedBox(height: 20),
+                      WholesaleDeliveryBanner(
+                        packetCount: WholesaleFeeCalculator.calcPacketCount(cartState.items.map((i) => i.quantity)),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    if (!isB2B) ...[
+                      const Text('Order Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('Pickup')),
+                              selected: _orderType == OrderType.pickup,
+                              selectedColor: AppColors.brandPrimary,
+                              onSelected: (v) {
+                                if (v) setState(() => _orderType = OrderType.pickup);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('Direct Delivery')),
+                              selected: _orderType == OrderType.delivery,
+                              selectedColor: AppColors.brandPrimary,
+                              onSelected: (v) {
+                                if (v) setState(() => _orderType = OrderType.delivery);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     TextField(
                       controller: _nameController,
                       decoration: const InputDecoration(labelText: 'Your Name'),
@@ -182,7 +232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
                       alignment: Alignment.topCenter,
-                      child: _orderType == OrderType.delivery
+                      child: showAddressFields
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -265,6 +315,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       onChanged: (v) => setState(() => _noReturnAck = v ?? false),
                       title: const Text('I understand this order cannot be returned or refunded.'),
                     ),
+                    if (isB2B) ...[
+                      const SizedBox(height: 4),
+                      const Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('Pay Online')),
+                              selected: _paymentMethod == 'razorpay',
+                              selectedColor: AppColors.brandPrimary,
+                              onSelected: (v) {
+                                if (v) setState(() => _paymentMethod = 'razorpay');
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(child: Text('Cash on Delivery')),
+                              selected: _paymentMethod == 'cod',
+                              selectedColor: AppColors.brandPrimary,
+                              onSelected: (v) {
+                                if (v) setState(() => _paymentMethod = 'cod');
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -308,9 +388,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         final isBusy =
                             checkoutState is CheckoutCreatingOrder || checkoutState is CheckoutVerifyingPayment;
                         return AppButton(
-                          label: 'Pay Now',
+                          label: isB2B && _paymentMethod == 'cod' ? 'Place Order' : 'Pay Now',
                           isLoading: isBusy,
-                          onPressed: () => _submit(context, cartState),
+                          onPressed: () => _submit(context, cartState, role: role, channel: channel, isB2B: isB2B),
                         );
                       },
                     ),
@@ -324,7 +404,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _submit(BuildContext context, CartState cartState) {
+  void _submit(
+    BuildContext context,
+    CartState cartState, {
+    required AccountRole role,
+    required String channel,
+    required bool isB2B,
+  }) {
     if (cartState.items.isEmpty) return;
     if (_nameController.text.trim().isEmpty || _phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -338,8 +424,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
+    String? wholesalerId;
+    if (role == AccountRole.salesman) {
+      wholesalerId = _salesWholesalerCubit.state.selected?.id;
+      if (wholesalerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select which wholesaler you are ordering for.')),
+        );
+        return;
+      }
+    }
+    // B2B orders always ship (no pickup/local-delivery option), so the
+    // address block is required the same way retail's delivery path is.
+    final requiresAddress = isB2B || _orderType == OrderType.delivery;
     Map<String, dynamic>? shippingAddress;
-    if (_orderType == OrderType.delivery) {
+    if (requiresAddress) {
       if (_line1Controller.text.trim().isEmpty ||
           _cityController.text.trim().isEmpty ||
           _stateController.text.trim().isEmpty ||
@@ -359,13 +458,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
     context.read<CheckoutBloc>().add(CheckoutEvent.submitted(
           items: cartState.items,
-          fulfillmentType: _orderType == OrderType.delivery ? 'local_delivery' : 'pickup',
+          fulfillmentType:
+              isB2B ? 'shipping' : (_orderType == OrderType.delivery ? 'local_delivery' : 'pickup'),
           customerName: _nameController.text.trim(),
           customerPhone: _phoneController.text.trim(),
           noReturnAck: _noReturnAck,
           customerEmail: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
           shippingAddress: shippingAddress,
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          channel: channel,
+          paymentMethod: isB2B ? _paymentMethod : 'razorpay',
+          wholesalerId: wholesalerId,
         ));
   }
 

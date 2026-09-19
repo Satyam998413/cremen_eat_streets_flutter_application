@@ -48,6 +48,9 @@ void main() {
           customerEmail: any(named: 'customerEmail'),
           shippingAddress: any(named: 'shippingAddress'),
           notes: any(named: 'notes'),
+          channel: any(named: 'channel'),
+          paymentMethod: any(named: 'paymentMethod'),
+          wholesalerId: any(named: 'wholesalerId'),
         )).thenAnswer((_) async => const Success(createdOrder)),
     build: buildBloc,
     act: (bloc) => bloc.add(const CheckoutEvent.submitted(
@@ -82,6 +85,9 @@ void main() {
           customerEmail: any(named: 'customerEmail'),
           shippingAddress: any(named: 'shippingAddress'),
           notes: any(named: 'notes'),
+          channel: any(named: 'channel'),
+          paymentMethod: any(named: 'paymentMethod'),
+          wholesalerId: any(named: 'wholesalerId'),
         )).thenAnswer((_) async => const Failed(ValidationFailure('Cart is empty.'))),
     build: buildBloc,
     act: (bloc) => bloc.add(const CheckoutEvent.submitted(

@@ -14,6 +14,9 @@ sealed class CheckoutEvent with _$CheckoutEvent {
     String? customerEmail,
     Map<String, dynamic>? shippingAddress,
     String? notes,
+    @Default('retail') String channel,
+    @Default('razorpay') String paymentMethod,
+    String? wholesalerId,
   }) = CheckoutSubmitted;
 
   const factory CheckoutEvent.paymentSucceeded(String razorpayPaymentId, String razorpaySignature) =

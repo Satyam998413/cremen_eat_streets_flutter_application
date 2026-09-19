@@ -51,7 +51,11 @@ class CatalogRepositoryImpl implements CatalogRepository {
     final variantRows = row['variants'] as List<dynamic>? ?? const [];
     final variants = variantRows.map((raw) {
       final v = raw as Map<String, dynamic>;
-      return ProductVariant(label: v['label'] as String, price: (v['price'] as num).toDouble());
+      return ProductVariant(
+        label: v['label'] as String,
+        price: (v['price'] as num).toDouble(),
+        wholesalePrice: (v['wholesalePrice'] as num?)?.toDouble(),
+      );
     }).toList();
 
     return Product(
@@ -63,6 +67,7 @@ class CatalogRepositoryImpl implements CatalogRepository {
       description: row['description'] as String? ?? '',
       basePrice: (row['base_price'] as num).toDouble(),
       compareAtPrice: (row['compare_at_price'] as num?)?.toDouble(),
+      wholesalePrice: (row['wholesale_price'] as num?)?.toDouble(),
       variants: variants,
       requiresShipping: row['requires_shipping'] as bool? ?? true,
       isVeg: row['is_veg'] as bool?,

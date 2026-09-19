@@ -122,10 +122,10 @@ return paymentFailed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes)?  submitted,TResult Function( String razorpayPaymentId,  String razorpaySignature)?  paymentSucceeded,TResult Function( String message)?  paymentFailed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes,  String channel,  String paymentMethod,  String? wholesalerId)?  submitted,TResult Function( String razorpayPaymentId,  String razorpaySignature)?  paymentSucceeded,TResult Function( String message)?  paymentFailed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CheckoutSubmitted() when submitted != null:
-return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes);case CheckoutPaymentSucceeded() when paymentSucceeded != null:
+return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes,_that.channel,_that.paymentMethod,_that.wholesalerId);case CheckoutPaymentSucceeded() when paymentSucceeded != null:
 return paymentSucceeded(_that.razorpayPaymentId,_that.razorpaySignature);case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that.message);case _:
   return orElse();
@@ -145,10 +145,10 @@ return paymentFailed(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes)  submitted,required TResult Function( String razorpayPaymentId,  String razorpaySignature)  paymentSucceeded,required TResult Function( String message)  paymentFailed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes,  String channel,  String paymentMethod,  String? wholesalerId)  submitted,required TResult Function( String razorpayPaymentId,  String razorpaySignature)  paymentSucceeded,required TResult Function( String message)  paymentFailed,}) {final _that = this;
 switch (_that) {
 case CheckoutSubmitted():
-return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes);case CheckoutPaymentSucceeded():
+return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes,_that.channel,_that.paymentMethod,_that.wholesalerId);case CheckoutPaymentSucceeded():
 return paymentSucceeded(_that.razorpayPaymentId,_that.razorpaySignature);case CheckoutPaymentFailed():
 return paymentFailed(_that.message);}
 }
@@ -164,10 +164,10 @@ return paymentFailed(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes)?  submitted,TResult? Function( String razorpayPaymentId,  String razorpaySignature)?  paymentSucceeded,TResult? Function( String message)?  paymentFailed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( List<CartItem> items,  String fulfillmentType,  String customerName,  String customerPhone,  bool noReturnAck,  String? customerEmail,  Map<String, dynamic>? shippingAddress,  String? notes,  String channel,  String paymentMethod,  String? wholesalerId)?  submitted,TResult? Function( String razorpayPaymentId,  String razorpaySignature)?  paymentSucceeded,TResult? Function( String message)?  paymentFailed,}) {final _that = this;
 switch (_that) {
 case CheckoutSubmitted() when submitted != null:
-return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes);case CheckoutPaymentSucceeded() when paymentSucceeded != null:
+return submitted(_that.items,_that.fulfillmentType,_that.customerName,_that.customerPhone,_that.noReturnAck,_that.customerEmail,_that.shippingAddress,_that.notes,_that.channel,_that.paymentMethod,_that.wholesalerId);case CheckoutPaymentSucceeded() when paymentSucceeded != null:
 return paymentSucceeded(_that.razorpayPaymentId,_that.razorpaySignature);case CheckoutPaymentFailed() when paymentFailed != null:
 return paymentFailed(_that.message);case _:
   return null;
@@ -181,7 +181,7 @@ return paymentFailed(_that.message);case _:
 
 
 class CheckoutSubmitted implements CheckoutEvent {
-  const CheckoutSubmitted({required final  List<CartItem> items, required this.fulfillmentType, required this.customerName, required this.customerPhone, required this.noReturnAck, this.customerEmail, final  Map<String, dynamic>? shippingAddress, this.notes}): _items = items,_shippingAddress = shippingAddress;
+  const CheckoutSubmitted({required final  List<CartItem> items, required this.fulfillmentType, required this.customerName, required this.customerPhone, required this.noReturnAck, this.customerEmail, final  Map<String, dynamic>? shippingAddress, this.notes, this.channel = 'retail', this.paymentMethod = 'razorpay', this.wholesalerId}): _items = items,_shippingAddress = shippingAddress;
   
 
  final  List<CartItem> _items;
@@ -206,6 +206,9 @@ class CheckoutSubmitted implements CheckoutEvent {
 }
 
  final  String? notes;
+@JsonKey() final  String channel;
+@JsonKey() final  String paymentMethod;
+ final  String? wholesalerId;
 
 /// Create a copy of CheckoutEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -217,16 +220,16 @@ $CheckoutSubmittedCopyWith<CheckoutSubmitted> get copyWith => _$CheckoutSubmitte
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutSubmitted&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.fulfillmentType, fulfillmentType) || other.fulfillmentType == fulfillmentType)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.noReturnAck, noReturnAck) || other.noReturnAck == noReturnAck)&&(identical(other.customerEmail, customerEmail) || other.customerEmail == customerEmail)&&const DeepCollectionEquality().equals(other._shippingAddress, _shippingAddress)&&(identical(other.notes, notes) || other.notes == notes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckoutSubmitted&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.fulfillmentType, fulfillmentType) || other.fulfillmentType == fulfillmentType)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.noReturnAck, noReturnAck) || other.noReturnAck == noReturnAck)&&(identical(other.customerEmail, customerEmail) || other.customerEmail == customerEmail)&&const DeepCollectionEquality().equals(other._shippingAddress, _shippingAddress)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.channel, channel) || other.channel == channel)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.wholesalerId, wholesalerId) || other.wholesalerId == wholesalerId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),fulfillmentType,customerName,customerPhone,noReturnAck,customerEmail,const DeepCollectionEquality().hash(_shippingAddress),notes);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),fulfillmentType,customerName,customerPhone,noReturnAck,customerEmail,const DeepCollectionEquality().hash(_shippingAddress),notes,channel,paymentMethod,wholesalerId);
 
 @override
 String toString() {
-  return 'CheckoutEvent.submitted(items: $items, fulfillmentType: $fulfillmentType, customerName: $customerName, customerPhone: $customerPhone, noReturnAck: $noReturnAck, customerEmail: $customerEmail, shippingAddress: $shippingAddress, notes: $notes)';
+  return 'CheckoutEvent.submitted(items: $items, fulfillmentType: $fulfillmentType, customerName: $customerName, customerPhone: $customerPhone, noReturnAck: $noReturnAck, customerEmail: $customerEmail, shippingAddress: $shippingAddress, notes: $notes, channel: $channel, paymentMethod: $paymentMethod, wholesalerId: $wholesalerId)';
 }
 
 
@@ -237,7 +240,7 @@ abstract mixin class $CheckoutSubmittedCopyWith<$Res> implements $CheckoutEventC
   factory $CheckoutSubmittedCopyWith(CheckoutSubmitted value, $Res Function(CheckoutSubmitted) _then) = _$CheckoutSubmittedCopyWithImpl;
 @useResult
 $Res call({
- List<CartItem> items, String fulfillmentType, String customerName, String customerPhone, bool noReturnAck, String? customerEmail, Map<String, dynamic>? shippingAddress, String? notes
+ List<CartItem> items, String fulfillmentType, String customerName, String customerPhone, bool noReturnAck, String? customerEmail, Map<String, dynamic>? shippingAddress, String? notes, String channel, String paymentMethod, String? wholesalerId
 });
 
 
@@ -254,7 +257,7 @@ class _$CheckoutSubmittedCopyWithImpl<$Res>
 
 /// Create a copy of CheckoutEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? items = null,Object? fulfillmentType = null,Object? customerName = null,Object? customerPhone = null,Object? noReturnAck = null,Object? customerEmail = freezed,Object? shippingAddress = freezed,Object? notes = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? items = null,Object? fulfillmentType = null,Object? customerName = null,Object? customerPhone = null,Object? noReturnAck = null,Object? customerEmail = freezed,Object? shippingAddress = freezed,Object? notes = freezed,Object? channel = null,Object? paymentMethod = null,Object? wholesalerId = freezed,}) {
   return _then(CheckoutSubmitted(
 items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<CartItem>,fulfillmentType: null == fulfillmentType ? _self.fulfillmentType : fulfillmentType // ignore: cast_nullable_to_non_nullable
@@ -264,6 +267,9 @@ as String,noReturnAck: null == noReturnAck ? _self.noReturnAck : noReturnAck // 
 as bool,customerEmail: freezed == customerEmail ? _self.customerEmail : customerEmail // ignore: cast_nullable_to_non_nullable
 as String?,shippingAddress: freezed == shippingAddress ? _self._shippingAddress : shippingAddress // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,channel: null == channel ? _self.channel : channel // ignore: cast_nullable_to_non_nullable
+as String,paymentMethod: null == paymentMethod ? _self.paymentMethod : paymentMethod // ignore: cast_nullable_to_non_nullable
+as String,wholesalerId: freezed == wholesalerId ? _self.wholesalerId : wholesalerId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

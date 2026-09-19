@@ -11,8 +11,8 @@ class CatalogRemoteDataSource {
 
   static const _productColumns =
       'id, product_type, slug, name, subtitle, description, base_price, compare_at_price, '
-      'variants, requires_shipping, is_veg, is_spicy, prep_time_label, rating_avg, rating_count, '
-      'product_media(storage_path, is_primary, alt_text)';
+      'wholesale_price, variants, requires_shipping, is_veg, is_spicy, prep_time_label, rating_avg, '
+      'rating_count, product_media(storage_path, is_primary, alt_text)';
 
   /// Active products with their media, via Postgrest's FK-based embed
   /// (product_media.product_id -> products.id) — one round trip, same rows

@@ -15,6 +15,9 @@ class CreateOrderParams {
     this.customerEmail,
     this.shippingAddress,
     this.notes,
+    this.channel = 'retail',
+    this.paymentMethod = 'razorpay',
+    this.wholesalerId,
   });
 
   final List<CartItem> items;
@@ -25,6 +28,17 @@ class CreateOrderParams {
   final String? customerEmail;
   final Map<String, dynamic>? shippingAddress;
   final String? notes;
+
+  /// 'retail' | 'sales' | 'wholesale' — see AccountRole.orderChannel.
+  final String channel;
+
+  /// 'razorpay' | 'cod' — 'cod' is only honored server-side for a non-retail
+  /// [channel].
+  final String paymentMethod;
+
+  /// Required when [channel] is 'sales' (one of the placing salesman's own
+  /// wholesalers); ignored/forced-to-self when [channel] is 'wholesale'.
+  final String? wholesalerId;
 }
 
 @lazySingleton
@@ -44,6 +58,9 @@ class CreateOrderUseCase implements UseCase<CreatedOrder, CreateOrderParams> {
       customerEmail: params.customerEmail,
       shippingAddress: params.shippingAddress,
       notes: params.notes,
+      channel: params.channel,
+      paymentMethod: params.paymentMethod,
+      wholesalerId: params.wholesalerId,
     );
   }
 }

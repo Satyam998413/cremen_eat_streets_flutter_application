@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/usecases/use_case.dart';
+import '../../../b2b/domain/usecases/resolve_account_role_usecase.dart';
 import '../../domain/entities/customer_profile.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/claim_guest_orders_usecase.dart';
@@ -34,6 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required UpdateFullNameUseCase updateFullName,
     required ClaimGuestOrdersUseCase claimGuestOrders,
     required LogoutUseCase logout,
+    required ResolveAccountRoleUseCase resolveAccountRole,
   })  : _repository = repository,
         _loginWithPassword = loginWithPassword,
         _signUpWithPassword = signUpWithPassword,
@@ -46,6 +48,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _updateFullName = updateFullName,
         _claimGuestOrders = claimGuestOrders,
         _logout = logout,
+        _resolveAccountRole = resolveAccountRole,
         super(const AuthState.loading()) {
     on<AuthSessionChecked>(_onSessionChecked);
     on<AuthLoggedInWithPassword>(_onLoggedInWithPassword);
@@ -79,10 +82,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final UpdateFullNameUseCase _updateFullName;
   final ClaimGuestOrdersUseCase _claimGuestOrders;
   final LogoutUseCase _logout;
+  final ResolveAccountRoleUseCase _resolveAccountRole;
   late final StreamSubscription<CustomerProfile?> _authSubscription;
 
   Future<void> _onSessionChecked(AuthSessionChecked event, Emitter<AuthState> emit) async {
-    emit(_stateFor(_repository.currentProfile));
+    await _emitForProfile(_repository.currentProfile, emit);
   }
 
   Future<void> _onLoggedInWithPassword(AuthLoggedInWithPassword event, Emitter<AuthState> emit) async {
@@ -104,7 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthState.signupPending(event.email));
         } else {
           await _claimGuestOrders(const NoParams());
-          emit(_stateFor(value));
+          await _emitForProfile(value, emit);
         }
       case Failed(:final failure):
         emit(AuthState.error(failure.message));
@@ -155,7 +159,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await _updatePassword(event.newPassword);
     switch (result) {
       case Success():
-        emit(_stateFor(_repository.currentProfile));
+        await _emitForProfile(_repository.currentProfile, emit);
       case Failed(:final failure):
         emit(AuthState.error(failure.message));
     }
@@ -174,7 +178,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await _updateFullName(event.fullName);
     switch (result) {
       case Success(:final value):
-        emit(_stateFor(value));
+        await _emitForProfile(value, emit);
       case Failed(:final failure):
         emit(AuthState.error(failure.message));
     }
@@ -194,7 +198,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // other login path does in _handleProfileResult.
       await _claimGuestOrders(const NoParams());
     }
-    emit(_stateFor(profile));
+    await _emitForProfile(profile, emit);
   }
 
   Future<void> _handleProfileResult(Result<CustomerProfile> result, Emitter<AuthState> emit) async {
@@ -203,16 +207,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (!value.needsProfileCompletion) {
           await _claimGuestOrders(const NoParams());
         }
-        emit(_stateFor(value));
+        await _emitForProfile(value, emit);
       case Failed(:final failure):
         emit(AuthState.error(failure.message));
     }
   }
 
-  AuthState _stateFor(CustomerProfile? profile) {
-    if (profile == null) return const AuthState.unauthenticated();
-    if (profile.needsProfileCompletion) return AuthState.needsProfileCompletion(profile);
-    return AuthState.authenticated(profile);
+  /// Emits the right [AuthState] for [profile], resolving the B2B role
+  /// (customer/salesman/wholesaler) for a real session along the way.
+  ///
+  /// The role lookup is a second network round trip after the customer
+  /// profile is already known, so this emits an immediate `Authenticated`
+  /// with the default customer role first — the app is never blocked
+  /// waiting on it — then a follow-up `Authenticated` carrying the resolved
+  /// role once that lookup returns. A failed lookup (e.g. offline) silently
+  /// keeps the default customer role rather than surfacing an error: it
+  /// should never block an otherwise-working retail checkout.
+  Future<void> _emitForProfile(CustomerProfile? profile, Emitter<AuthState> emit) async {
+    if (profile == null) {
+      emit(const AuthState.unauthenticated());
+      return;
+    }
+    if (profile.needsProfileCompletion) {
+      emit(AuthState.needsProfileCompletion(profile));
+      return;
+    }
+    emit(AuthState.authenticated(profile));
+    final result = await _resolveAccountRole(profile.id);
+    if (result case Success(:final value)) {
+      emit(AuthState.authenticated(
+        profile,
+        role: value.role,
+        salesProfile: value.salesProfile,
+        wholesalerProfile: value.wholesalerProfile,
+      ));
+    }
   }
 
   @override

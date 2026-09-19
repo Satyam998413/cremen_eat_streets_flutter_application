@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/pricing/pricing_context.dart';
+import '../../../../core/pricing/pricing_resolver.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/loading_skeleton.dart';
@@ -51,28 +53,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     super.dispose();
   }
 
-  double get _unitPrice {
-    if (_selectedVariantLabel == null) return widget.product.basePrice;
-    for (final variant in widget.product.variants) {
-      if (variant.label == _selectedVariantLabel) return variant.price;
-    }
-    return widget.product.basePrice;
-  }
-
-  double get _totalPrice => _unitPrice * _quantity;
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final product = widget.product;
+    final tier = watchPricingTier(context);
+    final unitPrice =
+        PricingResolver.resolveUnitPrice(product, variantLabel: _selectedVariantLabel, tier: tier) ??
+            product.basePrice;
+    final compareAtPrice = PricingResolver.resolveCompareAtPrice(product, variantLabel: _selectedVariantLabel);
 
     return BlocProvider<ReviewsBloc>.value(
       value: _reviewsBloc,
-      child: _buildScaffold(context, isDark, product),
+      child: _buildScaffold(context, isDark, product, tier, unitPrice, compareAtPrice),
     );
   }
 
-  Widget _buildScaffold(BuildContext context, bool isDark, Product product) {
+  Widget _buildScaffold(
+    BuildContext context,
+    bool isDark,
+    Product product,
+    PricingTier tier,
+    double unitPrice,
+    double? compareAtPrice,
+  ) {
+    final totalPrice = unitPrice * _quantity;
+    final discountPercent = PricingResolver.discountPercent(unitPrice, compareAtPrice);
+    final showCompareAt = compareAtPrice != null && compareAtPrice > unitPrice;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -133,9 +140,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ],
               const SizedBox(height: 8),
-              Text(
-                '₹${_unitPrice.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brandPrimary),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '₹${unitPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brandPrimary),
+                  ),
+                  if (showCompareAt) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      '₹${compareAtPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 15,
+                        decoration: TextDecoration.lineThrough,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                  if (discountPercent != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.successGreen,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '$discountPercent% OFF',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 12),
               Text(
@@ -155,8 +192,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   runSpacing: 8,
                   children: product.variants.map((variant) {
                     final isSelected = _selectedVariantLabel == variant.label;
+                    final variantPrice =
+                        PricingResolver.resolveUnitPrice(product, variantLabel: variant.label, tier: tier) ??
+                            variant.price;
                     return ChoiceChip(
-                      label: Text('${variant.label} • ₹${variant.price.toStringAsFixed(0)}'),
+                      label: Text('${variant.label} • ₹${variantPrice.toStringAsFixed(0)}'),
                       selected: isSelected,
                       selectedColor: AppColors.brandPrimary,
                       onSelected: (value) {
@@ -179,13 +219,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: AppButton(
-                      label: 'Add to Cart • ₹${_totalPrice.toStringAsFixed(0)}',
+                      label: 'Add to Cart • ₹${totalPrice.toStringAsFixed(0)}',
                       onPressed: () {
                         final item = CartItem(
                           id: DateTime.now().millisecondsSinceEpoch.toString(),
                           product: product,
                           quantity: _quantity,
                           variantLabel: _selectedVariantLabel,
+                          pricingTier: tier,
                         );
                         context.read<CartBloc>().add(CartItemAdded(item));
                         Navigator.of(context).pop();

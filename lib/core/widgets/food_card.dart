@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/catalog/domain/entities/product.dart';
+import '../pricing/pricing_context.dart';
+import '../pricing/pricing_resolver.dart';
 import '../theme/app_colors.dart';
 import 'responsive_product_image.dart';
 
@@ -45,6 +47,11 @@ class _FoodCardState extends State<FoodCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tier = watchPricingTier(context);
+    final unitPrice =
+        PricingResolver.resolveUnitPrice(widget.product, tier: tier) ?? widget.product.basePrice;
+    final compareAtPrice = PricingResolver.resolveCompareAtPrice(widget.product);
+    final showCompareAt = compareAtPrice != null && compareAtPrice > unitPrice;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -231,16 +238,45 @@ class _FoodCardState extends State<FoodCard>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
-                            child: Text(
-                              '₹${widget.product.basePrice.toStringAsFixed(0)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.brandPrimary,
-                              ),
-                            ),
+                            child: showCompareAt
+                                ? Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '₹${compareAtPrice.toStringAsFixed(0)}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          decoration: TextDecoration.lineThrough,
+                                          color: isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondaryLight,
+                                        ),
+                                      ),
+                                      Text(
+                                        '₹${unitPrice.toStringAsFixed(0)}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.brandPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Text(
+                                    '₹${unitPrice.toStringAsFixed(0)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.brandPrimary,
+                                    ),
+                                  ),
                           ),
                           _AddButton(onTap: widget.onAddTap),
                         ],

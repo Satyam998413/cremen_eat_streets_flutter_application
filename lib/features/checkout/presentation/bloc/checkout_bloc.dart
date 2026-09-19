@@ -36,19 +36,29 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       customerEmail: event.customerEmail,
       shippingAddress: event.shippingAddress,
       notes: event.notes,
+      channel: event.channel,
+      paymentMethod: event.paymentMethod,
+      wholesalerId: event.wholesalerId,
     ));
     switch (result) {
       case Success(:final value):
-        emit(CheckoutState.awaitingPayment(
-          orderId: value.orderId,
-          razorpayOrderId: value.razorpayOrderId,
-          amount: value.amount,
-          currency: value.currency,
-          keyId: value.keyId,
-          prefillName: value.prefillName,
-          prefillContact: value.prefillContact,
-          prefillEmail: value.prefillEmail,
-        ));
+        if (value.codConfirmed) {
+          // Already confirmed server-side — nothing left to pay online, so
+          // skip straight to the same success path a verified Razorpay
+          // payment lands on.
+          emit(CheckoutState.success(value.publicToken ?? ''));
+        } else {
+          emit(CheckoutState.awaitingPayment(
+            orderId: value.orderId,
+            razorpayOrderId: value.razorpayOrderId ?? '',
+            amount: value.amount ?? 0,
+            currency: value.currency ?? 'INR',
+            keyId: value.keyId ?? '',
+            prefillName: value.prefillName ?? event.customerName,
+            prefillContact: value.prefillContact ?? event.customerPhone,
+            prefillEmail: value.prefillEmail,
+          ));
+        }
       case Failed(:final failure):
         emit(CheckoutState.failure(failure.message));
     }

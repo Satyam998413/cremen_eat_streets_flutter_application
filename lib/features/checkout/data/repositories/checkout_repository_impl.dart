@@ -25,6 +25,9 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
     String? customerEmail,
     Map<String, dynamic>? shippingAddress,
     String? notes,
+    String channel = 'retail',
+    String paymentMethod = 'razorpay',
+    String? wholesalerId,
   }) async {
     try {
       final payload = {
@@ -42,6 +45,15 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         if (customerEmail != null) 'customerEmail': customerEmail,
         if (shippingAddress != null) 'shippingAddress': shippingAddress,
         if (notes != null) 'notes': notes,
+        // Omitted entirely for a retail order — 'omit or "retail" = no
+        // behavior change from today' per the create-order contract, and
+        // omitting keeps this payload byte-for-byte what this app already
+        // sent before the B2B ordering channel existed.
+        if (channel != 'retail') ...{
+          'channel': channel,
+          'paymentMethod': paymentMethod,
+          if (wholesalerId != null) 'wholesalerId': wholesalerId,
+        },
       };
       // Supabase's own session — not this app's HTTP session — so a
       // logged-in customer's order gets attributed server-side via the
@@ -51,13 +63,20 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
       final data = Map<String, dynamic>.from(response.data as Map);
 
       if (response.statusCode == 200) {
+        if (data['codConfirmed'] == true) {
+          return Success(CreatedOrder(
+            orderId: data['orderId'] as String,
+            codConfirmed: true,
+            publicToken: data['publicToken'] as String?,
+          ));
+        }
         final prefill = data['prefill'] as Map<String, dynamic>? ?? const {};
         return Success(CreatedOrder(
           orderId: data['orderId'] as String,
-          razorpayOrderId: data['razorpayOrderId'] as String,
-          amount: data['amount'] as int,
-          currency: data['currency'] as String,
-          keyId: data['keyId'] as String,
+          razorpayOrderId: data['razorpayOrderId'] as String?,
+          amount: data['amount'] as int?,
+          currency: data['currency'] as String?,
+          keyId: data['keyId'] as String?,
           prefillName: (prefill['name'] as String?) ?? customerName,
           prefillContact: (prefill['contact'] as String?) ?? customerPhone,
           prefillEmail: prefill['email'] as String?,

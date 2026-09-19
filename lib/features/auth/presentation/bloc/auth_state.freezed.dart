@@ -137,7 +137,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function()?  unauthenticated,TResult Function( String email)?  otpSent,TResult Function( String email)?  signupPending,TResult Function()?  passwordResetEmailSent,TResult Function( CustomerProfile profile)?  needsProfileCompletion,TResult Function( CustomerProfile profile)?  authenticated,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function()?  unauthenticated,TResult Function( String email)?  otpSent,TResult Function( String email)?  signupPending,TResult Function()?  passwordResetEmailSent,TResult Function( CustomerProfile profile)?  needsProfileCompletion,TResult Function( CustomerProfile profile,  AccountRole role,  SalesProfile? salesProfile,  WholesalerProfile? wholesalerProfile)?  authenticated,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AuthLoading() when loading != null:
 return loading();case AuthUnauthenticated() when unauthenticated != null:
@@ -146,7 +146,7 @@ return otpSent(_that.email);case AuthSignupPending() when signupPending != null:
 return signupPending(_that.email);case AuthPasswordResetEmailSent() when passwordResetEmailSent != null:
 return passwordResetEmailSent();case AuthNeedsProfileCompletion() when needsProfileCompletion != null:
 return needsProfileCompletion(_that.profile);case Authenticated() when authenticated != null:
-return authenticated(_that.profile);case AuthError() when error != null:
+return authenticated(_that.profile,_that.role,_that.salesProfile,_that.wholesalerProfile);case AuthError() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -165,7 +165,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function()  unauthenticated,required TResult Function( String email)  otpSent,required TResult Function( String email)  signupPending,required TResult Function()  passwordResetEmailSent,required TResult Function( CustomerProfile profile)  needsProfileCompletion,required TResult Function( CustomerProfile profile)  authenticated,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function()  unauthenticated,required TResult Function( String email)  otpSent,required TResult Function( String email)  signupPending,required TResult Function()  passwordResetEmailSent,required TResult Function( CustomerProfile profile)  needsProfileCompletion,required TResult Function( CustomerProfile profile,  AccountRole role,  SalesProfile? salesProfile,  WholesalerProfile? wholesalerProfile)  authenticated,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case AuthLoading():
 return loading();case AuthUnauthenticated():
@@ -174,7 +174,7 @@ return otpSent(_that.email);case AuthSignupPending():
 return signupPending(_that.email);case AuthPasswordResetEmailSent():
 return passwordResetEmailSent();case AuthNeedsProfileCompletion():
 return needsProfileCompletion(_that.profile);case Authenticated():
-return authenticated(_that.profile);case AuthError():
+return authenticated(_that.profile,_that.role,_that.salesProfile,_that.wholesalerProfile);case AuthError():
 return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -189,7 +189,7 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function()?  unauthenticated,TResult? Function( String email)?  otpSent,TResult? Function( String email)?  signupPending,TResult? Function()?  passwordResetEmailSent,TResult? Function( CustomerProfile profile)?  needsProfileCompletion,TResult? Function( CustomerProfile profile)?  authenticated,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function()?  unauthenticated,TResult? Function( String email)?  otpSent,TResult? Function( String email)?  signupPending,TResult? Function()?  passwordResetEmailSent,TResult? Function( CustomerProfile profile)?  needsProfileCompletion,TResult? Function( CustomerProfile profile,  AccountRole role,  SalesProfile? salesProfile,  WholesalerProfile? wholesalerProfile)?  authenticated,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case AuthLoading() when loading != null:
 return loading();case AuthUnauthenticated() when unauthenticated != null:
@@ -198,7 +198,7 @@ return otpSent(_that.email);case AuthSignupPending() when signupPending != null:
 return signupPending(_that.email);case AuthPasswordResetEmailSent() when passwordResetEmailSent != null:
 return passwordResetEmailSent();case AuthNeedsProfileCompletion() when needsProfileCompletion != null:
 return needsProfileCompletion(_that.profile);case Authenticated() when authenticated != null:
-return authenticated(_that.profile);case AuthError() when error != null:
+return authenticated(_that.profile,_that.role,_that.salesProfile,_that.wholesalerProfile);case AuthError() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -505,10 +505,13 @@ as CustomerProfile,
 
 
 class Authenticated implements AuthState {
-  const Authenticated(this.profile);
+  const Authenticated(this.profile, {this.role = AccountRole.customer, this.salesProfile, this.wholesalerProfile});
   
 
  final  CustomerProfile profile;
+@JsonKey() final  AccountRole role;
+ final  SalesProfile? salesProfile;
+ final  WholesalerProfile? wholesalerProfile;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
@@ -520,16 +523,16 @@ $AuthenticatedCopyWith<Authenticated> get copyWith => _$AuthenticatedCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Authenticated&&(identical(other.profile, profile) || other.profile == profile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Authenticated&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.role, role) || other.role == role)&&(identical(other.salesProfile, salesProfile) || other.salesProfile == salesProfile)&&(identical(other.wholesalerProfile, wholesalerProfile) || other.wholesalerProfile == wholesalerProfile));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,profile);
+int get hashCode => Object.hash(runtimeType,profile,role,salesProfile,wholesalerProfile);
 
 @override
 String toString() {
-  return 'AuthState.authenticated(profile: $profile)';
+  return 'AuthState.authenticated(profile: $profile, role: $role, salesProfile: $salesProfile, wholesalerProfile: $wholesalerProfile)';
 }
 
 
@@ -540,7 +543,7 @@ abstract mixin class $AuthenticatedCopyWith<$Res> implements $AuthStateCopyWith<
   factory $AuthenticatedCopyWith(Authenticated value, $Res Function(Authenticated) _then) = _$AuthenticatedCopyWithImpl;
 @useResult
 $Res call({
- CustomerProfile profile
+ CustomerProfile profile, AccountRole role, SalesProfile? salesProfile, WholesalerProfile? wholesalerProfile
 });
 
 
@@ -557,10 +560,13 @@ class _$AuthenticatedCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? profile = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? profile = null,Object? role = null,Object? salesProfile = freezed,Object? wholesalerProfile = freezed,}) {
   return _then(Authenticated(
 null == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
-as CustomerProfile,
+as CustomerProfile,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as AccountRole,salesProfile: freezed == salesProfile ? _self.salesProfile : salesProfile // ignore: cast_nullable_to_non_nullable
+as SalesProfile?,wholesalerProfile: freezed == wholesalerProfile ? _self.wholesalerProfile : wholesalerProfile // ignore: cast_nullable_to_non_nullable
+as WholesalerProfile?,
   ));
 }
 
