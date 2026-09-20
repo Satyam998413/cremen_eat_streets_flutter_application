@@ -12,14 +12,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<CartItemRemoved>(_onCartItemRemoved);
     on<CartItemQuantityChanged>(_onCartItemQuantityChanged);
     on<CartCleared>(_onCartCleared);
+    on<CartHydrated>(_onCartHydrated);
     _hydrateFromStorage();
   }
 
   Future<void> _hydrateFromStorage() async {
     final storedItems = await HiveStorageService.loadCartItems();
     if (storedItems.isNotEmpty) {
-      emit(state.copyWith(items: storedItems));
+      add(CartHydrated(storedItems));
     }
+  }
+
+  void _onCartHydrated(CartHydrated event, Emitter<CartState> emit) {
+    emit(state.copyWith(items: event.items));
   }
 
   Future<void> _onCartItemAdded(CartItemAdded event, Emitter<CartState> emit) async {

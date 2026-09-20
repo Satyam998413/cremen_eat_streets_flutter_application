@@ -34,3 +34,11 @@ class CartItemQuantityChanged extends CartEvent {
 }
 
 class CartCleared extends CartEvent {}
+
+class CartHydrated extends CartEvent {
+  final List<CartItem> items;
+  const CartHydrated(this.items);
+
+  @override
+  List<Object?> get props => [items];
+}

@@ -310,7 +310,6 @@ class _SplashScreenState extends State<SplashScreen>
       final startY = size.height + 40.0;
       final endY = -80.0 + random.nextDouble() * size.height * 0.4;
       final delay = random.nextDouble() * 2.0;
-      final duration = 2.5 + random.nextDouble() * 2.0;
       final xWiggle = (random.nextDouble() - 0.5) * 100;
       final fontSize = 16.0 + random.nextDouble() * 20;
 
