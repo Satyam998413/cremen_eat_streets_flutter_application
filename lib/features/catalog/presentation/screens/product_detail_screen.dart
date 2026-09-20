@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/pricing/pricing_context.dart';
 import '../../../../core/pricing/pricing_resolver.dart';
@@ -249,6 +251,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ],
               ).animate(delay: 150.ms).fadeIn(duration: 350.ms).slideY(begin: 0.15, curve: Curves.easeOutCubic),
+              if (product.marketplaceLinks.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _MarketplaceLinksSection(links: product.marketplaceLinks, isDark: isDark),
+              ],
               const SizedBox(height: 28),
               const Divider(),
               const SizedBox(height: 12),
@@ -390,6 +396,124 @@ class _ReviewTile extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Known-platform brand colors/marks — purely a fallback for when a product's
+/// marketplace link has no uploaded logo yet (mirrors app/lib/marketplaces.js
+/// on the website; keep the two in sync if a platform's brand color changes).
+const Map<String, Color> _kMarketplaceBrandColors = {
+  'meesho': Color(0xFF9F2089),
+  'amazon': Color(0xFF131921),
+  'flipkart': Color(0xFF2874F0),
+  'instamart': Color(0xFFFC8019),
+};
+
+/// "Also available on" row for the product detail screen — one tile per
+/// entry in `product.marketplaceLinks` (cremen_eat_streets,
+/// products.marketplace_links jsonb). Tapping any tile opens that listing in
+/// the device's browser/app. Shows the admin's uploaded logo when one exists
+/// for that platform name (shared across every product — see
+/// public.marketplace_logos), otherwise a brand-colored letter mark.
+class _MarketplaceLinksSection extends StatelessWidget {
+  const _MarketplaceLinksSection({required this.links, required this.isDark});
+
+  final List<ProductMarketplaceLink> links;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ALSO AVAILABLE ON',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: links.map((link) => _MarketplaceTile(link: link)).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _MarketplaceTile extends StatelessWidget {
+  const _MarketplaceTile({required this.link});
+
+  final ProductMarketplaceLink link;
+
+  Future<void> _open() async {
+    final uri = Uri.tryParse(link.url);
+    if (uri == null) return;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brandColor = _kMarketplaceBrandColors[link.platform.toLowerCase()] ?? Colors.blueGrey;
+    return InkWell(
+      onTap: _open,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.only(left: 4, right: 14, top: 4, bottom: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: brandColor.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipOval(
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: link.logoUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: link.logoUrl!,
+                        fit: BoxFit.contain,
+                        errorWidget: (context, url, error) => _MarketplaceMark(color: brandColor, platform: link.platform),
+                      )
+                    : _MarketplaceMark(color: brandColor, platform: link.platform),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(link.platform, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            const SizedBox(width: 4),
+            const Icon(Icons.open_in_new, size: 13, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MarketplaceMark extends StatelessWidget {
+  const _MarketplaceMark({required this.color, required this.platform});
+
+  final Color color;
+  final String platform;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: color,
+      alignment: Alignment.center,
+      child: Text(
+        platform.isNotEmpty ? platform[0].toUpperCase() : '?',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
       ),
     );
   }

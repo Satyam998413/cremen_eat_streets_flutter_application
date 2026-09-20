@@ -29,7 +29,11 @@ class CatalogRepositoryImpl implements CatalogRepository {
     try {
       final row = await _remote.fetchProductBySlug(slug);
       if (row == null) return const Failed(ValidationFailure('Product not found.'));
-      return Success(_toProduct(row));
+      // Only the detail screen shows marketplace links, so only this path pays for the
+      // extra small lookup — getCatalog's grid view doesn't need logos resolved.
+      final logoRows = await _remote.fetchMarketplaceLogos();
+      final logoByKey = {for (final r in logoRows) r['platform_key'] as String: r['logo_path'] as String};
+      return Success(_toProduct(row, logoByKey: logoByKey));
     } on PostgrestException catch (e) {
       return Failed(NetworkFailure(e.message));
     } catch (e) {
@@ -37,7 +41,7 @@ class CatalogRepositoryImpl implements CatalogRepository {
     }
   }
 
-  Product _toProduct(Map<String, dynamic> row) {
+  Product _toProduct(Map<String, dynamic> row, {Map<String, String> logoByKey = const {}}) {
     final mediaRows = row['product_media'] as List<dynamic>? ?? const [];
     final media = mediaRows.map((raw) {
       final m = raw as Map<String, dynamic>;
@@ -55,6 +59,18 @@ class CatalogRepositoryImpl implements CatalogRepository {
         label: v['label'] as String,
         price: (v['price'] as num).toDouble(),
         wholesalePrice: (v['wholesalePrice'] as num?)?.toDouble(),
+      );
+    }).toList();
+
+    final marketplaceLinkRows = row['marketplace_links'] as List<dynamic>? ?? const [];
+    final marketplaceLinks = marketplaceLinkRows.map((raw) {
+      final m = raw as Map<String, dynamic>;
+      final platform = m['platform'] as String;
+      final logoPath = logoByKey[platform.toLowerCase()];
+      return ProductMarketplaceLink(
+        platform: platform,
+        url: m['url'] as String,
+        logoUrl: logoPath != null ? _remote.publicMediaUrl(logoPath) : null,
       );
     }).toList();
 
@@ -76,6 +92,7 @@ class CatalogRepositoryImpl implements CatalogRepository {
       ratingAvg: (row['rating_avg'] as num?)?.toDouble() ?? 0,
       ratingCount: row['rating_count'] as int? ?? 0,
       media: media,
+      marketplaceLinks: marketplaceLinks,
     );
   }
 }

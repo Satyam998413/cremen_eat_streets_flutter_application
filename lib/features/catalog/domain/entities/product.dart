@@ -50,6 +50,33 @@ class ProductMedia extends Equatable {
   List<Object?> get props => [url, isPrimary, altText];
 }
 
+/// One "also available on" external listing — mirrors one entry of the
+/// `products.marketplace_links` jsonb array (cremen_eat_streets, see
+/// ProductForm > MarketplaceLinksEditor). [logoUrl] is resolved by the
+/// repository from the separate `marketplace_logos` table (keyed by
+/// lowercased [platform] name, shared across every product) — it is not
+/// stored on the link itself, so it's null until that lookup has run.
+class ProductMarketplaceLink extends Equatable {
+  const ProductMarketplaceLink({required this.platform, required this.url, this.logoUrl});
+
+  final String platform;
+  final String url;
+  final String? logoUrl;
+
+  Map<String, dynamic> toMap() => {'platform': platform, 'url': url, 'logoUrl': logoUrl};
+
+  factory ProductMarketplaceLink.fromMap(Map<String, dynamic> map) {
+    return ProductMarketplaceLink(
+      platform: map['platform'] as String,
+      url: map['url'] as String,
+      logoUrl: map['logoUrl'] as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [platform, url, logoUrl];
+}
+
 /// Mirrors the columns of `products` this app actually displays — the
 /// packaged-only label/nutrition fields (weight_label, ingredients, batch_no,
 /// etc.) are Label Studio/admin-only and deliberately left out here.
@@ -72,6 +99,7 @@ class Product extends Equatable {
     this.ratingAvg = 0,
     this.ratingCount = 0,
     this.media = const [],
+    this.marketplaceLinks = const [],
   });
 
   final String id;
@@ -95,6 +123,7 @@ class Product extends Equatable {
   final double ratingAvg;
   final int ratingCount;
   final List<ProductMedia> media;
+  final List<ProductMarketplaceLink> marketplaceLinks;
 
   bool get isPackaged => productType == 'packaged';
   bool get hasVariants => variants.isNotEmpty;
@@ -123,6 +152,7 @@ class Product extends Equatable {
       'ratingAvg': ratingAvg,
       'ratingCount': ratingCount,
       'media': media.map((m) => m.toMap()).toList(),
+      'marketplaceLinks': marketplaceLinks.map((m) => m.toMap()).toList(),
     };
   }
 
@@ -149,6 +179,9 @@ class Product extends Equatable {
       media: (map['media'] as List<dynamic>? ?? const [])
           .map((m) => ProductMedia.fromMap(Map<String, dynamic>.from(m as Map)))
           .toList(),
+      marketplaceLinks: (map['marketplaceLinks'] as List<dynamic>? ?? const [])
+          .map((m) => ProductMarketplaceLink.fromMap(Map<String, dynamic>.from(m as Map)))
+          .toList(),
     );
   }
 
@@ -171,5 +204,6 @@ class Product extends Equatable {
         ratingAvg,
         ratingCount,
         media,
+        marketplaceLinks,
       ];
 }

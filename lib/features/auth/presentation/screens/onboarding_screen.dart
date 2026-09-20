@@ -78,7 +78,7 @@ class OnboardingScreen extends StatelessWidget {
 
                   // Brand Title
                   Text(
-                    'Cremen Eat Streets',
+                    'Cremenkart',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       fontSize: 36,

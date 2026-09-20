@@ -67,7 +67,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) => MaterialApp.router(
-          title: 'Cremen Eat Streets',
+          title: 'Cremenkart',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

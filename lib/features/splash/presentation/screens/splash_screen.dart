@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                       .slideY(begin: 0.3, curve: Curves.easeOutCubic),
 
                   Text(
-                    'EAT STREETS',
+                    'KART',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,

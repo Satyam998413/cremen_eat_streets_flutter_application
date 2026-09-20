@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 .scaleXY(end: 1.1, duration: 1200.ms, curve: Curves.easeInOut),
             const SizedBox(width: 8),
             const Text(
-              'Cremen Eat Streets',
+              'Cremenkart',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
           ],

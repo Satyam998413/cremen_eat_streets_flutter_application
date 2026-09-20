@@ -1,6 +1,6 @@
 {
-    "name": "cremen_eatstreet_shop_application",
-    "short_name": "cremen_eatstreet_shop_application",
+    "name": "Cremenkart",
+    "short_name": "Cremenkart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
