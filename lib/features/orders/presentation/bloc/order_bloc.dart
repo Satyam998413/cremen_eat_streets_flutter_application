@@ -10,10 +10,9 @@ import 'order_state.dart';
 @lazySingleton
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   OrderBloc({
-    required GetOrderHistoryUseCase getOrderHistory,
+    required this._getOrderHistory,
     required GetOrderByPublicTokenUseCase getOrderByPublicToken,
-  })  : _getOrderHistory = getOrderHistory,
-        _getOrderByPublicToken = getOrderByPublicToken,
+  })  : _getOrderByPublicToken = getOrderByPublicToken,
         super(const OrderState.initial()) {
     on<OrderHistoryRequested>(_onHistoryRequested);
     on<OrderDetailRequested>(_onDetailRequested);

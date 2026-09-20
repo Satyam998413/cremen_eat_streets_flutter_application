@@ -42,9 +42,9 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         'customerPhone': customerPhone,
         'fulfillmentType': fulfillmentType,
         'noReturnAck': noReturnAck,
-        if (customerEmail != null) 'customerEmail': customerEmail,
-        if (shippingAddress != null) 'shippingAddress': shippingAddress,
-        if (notes != null) 'notes': notes,
+        'customerEmail': ?customerEmail,
+        'shippingAddress': ?shippingAddress,
+        'notes': ?notes,
         // Omitted entirely for a retail order — 'omit or "retail" = no
         // behavior change from today' per the create-order contract, and
         // omitting keeps this payload byte-for-byte what this app already
@@ -52,7 +52,7 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         if (channel != 'retail') ...{
           'channel': channel,
           'paymentMethod': paymentMethod,
-          if (wholesalerId != null) 'wholesalerId': wholesalerId,
+          'wholesalerId': ?wholesalerId,
         },
       };
       // Supabase's own session — not this app's HTTP session — so a

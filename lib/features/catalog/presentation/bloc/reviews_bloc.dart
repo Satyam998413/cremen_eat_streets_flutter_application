@@ -12,12 +12,10 @@ import 'reviews_state.dart';
 @injectable
 class ReviewsBloc extends Bloc<ReviewsEvent, ReviewsState> {
   ReviewsBloc({
-    required GetReviewsUseCase getReviews,
+    required this._getReviews,
     required GetEligibleReviewOrderUseCase getEligibleReviewOrder,
-    required SubmitReviewUseCase submitReview,
-  })  : _getReviews = getReviews,
-        _getEligibleReviewOrder = getEligibleReviewOrder,
-        _submitReview = submitReview,
+    required this._submitReview,
+  })  : _getEligibleReviewOrder = getEligibleReviewOrder,
         super(const ReviewsState.loading()) {
     on<ReviewsLoadRequested>(_onLoadRequested);
     on<ReviewsSubmitRequested>(_onSubmitRequested);

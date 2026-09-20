@@ -12,10 +12,9 @@ import 'checkout_state.dart';
 @injectable
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   CheckoutBloc({
-    required CreateOrderUseCase createOrder,
+    required this._createOrder,
     required VerifyPaymentUseCase verifyPayment,
-  })  : _createOrder = createOrder,
-        _verifyPayment = verifyPayment,
+  })  : _verifyPayment = verifyPayment,
         super(const CheckoutState.idle()) {
     on<CheckoutSubmitted>(_onSubmitted);
     on<CheckoutPaymentSucceeded>(_onPaymentSucceeded);
