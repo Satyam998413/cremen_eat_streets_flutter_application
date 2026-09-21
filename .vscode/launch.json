@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cremen_eatstreet_shop_application (.env)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define-from-file=.env"
+            ]
+        },
+        {
+            "name": "cremen_eatstreet_shop_application (Local Dev - Android)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=API_BASE_URL=http://10.0.2.2:3000"
+            ]
+        }
+    ]
+}
