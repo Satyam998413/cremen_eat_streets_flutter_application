@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -177,12 +178,31 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 24),
               Align(
                 alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () => context.push('/account/returns-policy'),
-                  child: const Text(
-                    'Returns Policy',
-                    style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
-                  ),
+                child: Wrap(
+                  spacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => context.push('/account/returns-policy'),
+                      child: const Text(
+                        'Returns Policy',
+                        style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const Text('•', style: TextStyle(color: Colors.grey)),
+                    TextButton(
+                      onPressed: () async {
+                        final uri = Uri.parse('https://cremen.in/privacy/');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      child: const Text(
+                        'Privacy Policy',
+                        style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
               ).animate(delay: 420.ms).fadeIn(duration: 350.ms).slideY(begin: 0.2, duration: 350.ms, curve: Curves.easeOutCubic),
             ],
