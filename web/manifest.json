@@ -1,6 +1,6 @@
 {
-    "name": "Cremenkart",
-    "short_name": "Cremenkart",
+    "name": "CremenKart",
+    "short_name": "CremenKart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

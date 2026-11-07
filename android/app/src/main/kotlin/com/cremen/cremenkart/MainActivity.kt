@@ -1,4 +1,4 @@
-package com.cremeneatstreet.shop.cremen_eatstreet_shop_application
+package com.cremen.cremenkart
 
 import io.flutter.embedding.android.FlutterActivity
 

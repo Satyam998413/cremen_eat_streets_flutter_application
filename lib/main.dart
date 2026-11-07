@@ -19,6 +19,12 @@ import 'features/orders/presentation/bloc/order_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Engine performance optimization: cap in-memory image cache to 50MB / 100 images
+  // to maintain smooth 60/120fps scrolling and avoid memory pressure on Android
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
+
   await HiveStorageService.init();
   await Hive.openBox(ThemeCubit.boxName);
   await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);
@@ -30,17 +36,19 @@ Future<void> main() async {
   // constructors (ThemeCubit, the Supabase-backed datasources) touch them
   // the first time get_it resolves that type.
   configureDependencies();
-  runApp(const CremenEatStreetApp());
+  runApp(const CremenKartApp());
 }
 
-class CremenEatStreetApp extends StatefulWidget {
-  const CremenEatStreetApp({super.key});
+typedef CremenEatStreetApp = CremenKartApp;
+
+class CremenKartApp extends StatefulWidget {
+  const CremenKartApp({super.key});
 
   @override
-  State<CremenEatStreetApp> createState() => _CremenEatStreetAppState();
+  State<CremenKartApp> createState() => _CremenKartAppState();
 }
 
-class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
+class _CremenKartAppState extends State<CremenKartApp> {
   late final GoRouter _router;
 
   @override
@@ -67,7 +75,7 @@ class _CremenEatStreetAppState extends State<CremenEatStreetApp> {
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) => MaterialApp.router(
-          title: 'Cremenkart',
+          title: 'CremenKart',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

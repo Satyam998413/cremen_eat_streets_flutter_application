@@ -1,5 +1,5 @@
 name: cremen_eatstreet_shop_application
-description: "Cremenkart — order authentic Surat street food for pickup or delivery."
+description: "CremenKart — order authentic Surat street food for pickup or delivery."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -126,14 +126,14 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/cremen_logo.jpg"
+  image_path: "assets/images/cremen_logo.png"
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#EF6523"
   adaptive_icon_foreground: "assets/images/cremen_logo_adaptive_fg.png"
   windows:
     generate: true
-    image_path: "assets/images/cremen_logo.jpg"
+    image_path: "assets/images/cremen_logo.png"
     icon_size: 256
 
 # `dart run flutter_native_splash:create` regenerates the OS-level splash
@@ -143,9 +143,9 @@ flutter_launcher_icons:
 # background is baked-in solid white, not transparent; splitting light/dark
 # would show a visible white box around the logo in dark mode.
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/images/cremen_logo.jpg
+  color: "#EF6523"
+  image: assets/images/cremen_logo_adaptive_fg.png
   android_12:
-    image: assets/images/cremen_logo.jpg
-    color: "#FFFFFF"
+    image: assets/images/cremen_logo_adaptive_fg.png
+    color: "#EF6523"
   web: false

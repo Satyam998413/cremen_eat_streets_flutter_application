@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Must also be added to Supabase Dashboard → Authentication → URL
 /// Configuration → Redirect URLs (a one-time step only the project owner can
 /// do, tracked as a manual follow-up).
-const googleOAuthRedirectUri = 'com.cremeneatstreet.shop://login-callback';
+const googleOAuthRedirectUri = 'com.cremen.cremenkart://login-callback';
 
 /// Thin wrapper around the Supabase SDK calls this feature needs. Throws the
 /// SDK's own exceptions (AuthException, PostgrestException) — mapping those

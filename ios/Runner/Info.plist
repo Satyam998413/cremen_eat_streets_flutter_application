@@ -12,7 +12,7 @@
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-3940256099942544~1458002511</string>
 		<key>CFBundleDisplayName</key>
-		<string>Cremenkart</string>
+		<string>CremenKart</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -20,7 +20,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>Cremenkart</string>
+		<string>CremenKart</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -44,10 +44,10 @@
 		<array>
 			<dict>
 				<key>CFBundleURLName</key>
-				<string>com.cremeneatstreet.shop</string>
+				<string>com.cremen.cremenkart</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.cremeneatstreet.shop</string>
+					<string>com.cremen.cremenkart</string>
 				</array>
 			</dict>
 		</array>

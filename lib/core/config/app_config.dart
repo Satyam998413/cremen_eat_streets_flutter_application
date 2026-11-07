@@ -31,7 +31,7 @@ class AppConfig {
   /// (Android emulator's alias for the host machine) while developing.
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://cremeneatstreet.shop',
+    defaultValue: 'https://cremen.in',
   );
 
   /// AdMob banner ad unit IDs. These default to Google's public *test* units,

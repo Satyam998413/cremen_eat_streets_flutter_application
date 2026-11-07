@@ -25,7 +25,7 @@ class ResponsiveProductImage extends StatelessWidget {
     this.height,
     this.aspectRatio = 4 / 3,
     this.fit = BoxFit.cover,
-    this.placeholderAsset = 'assets/images/cremen_logo.jpg',
+    this.placeholderAsset = 'assets/images/cremen_logo.png',
     this.borderRadius,
     this.fallbackColor,
     this.fallbackIcon = Icons.fastfood,
@@ -44,6 +44,8 @@ class ResponsiveProductImage extends StatelessWidget {
             width: width,
             height: height,
             fit: fit,
+            memCacheWidth: width != null ? (width! * 2).round() : 600,
+            memCacheHeight: height != null ? (height! * 2).round() : null,
             fadeInDuration: const Duration(milliseconds: 300),
             fadeInCurve: Curves.easeOut,
             placeholder: (context, url) => _buildShimmerPlaceholder(context),
@@ -54,6 +56,7 @@ class ResponsiveProductImage extends StatelessWidget {
             width: width,
             height: height,
             fit: fit,
+            cacheWidth: width != null ? (width! * 2).round() : 600,
             errorBuilder: (context, error, stackTrace) => _buildFallback(),
           );
 
