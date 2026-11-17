@@ -81,12 +81,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   builder: (context, state) => AppButton(
                     label: 'Log In',
                     isLoading: state is AuthLoading,
-                    onPressed: () => context.read<AuthBloc>().add(
-                          AuthEvent.loggedInWithPassword(
-                            _emailController.text.trim(),
-                            _passwordController.text,
-                          ),
-                        ),
+                    onPressed: () {
+                      final email = _emailController.text.trim();
+                      final password = _passwordController.text;
+                      if (email.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter your email.')),
+                        );
+                        return;
+                      }
+                      if (password.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter your password.')),
+                        );
+                        return;
+                      }
+                      context.read<AuthBloc>().add(
+                            AuthEvent.loggedInWithPassword(email, password),
+                          );
+                    },
                   ),
                 ).animate(delay: 220.ms).fadeIn(duration: 350.ms).slideY(
                       begin: 0.2,

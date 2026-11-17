@@ -19,8 +19,8 @@ class ProductVariant extends Equatable {
 
   factory ProductVariant.fromMap(Map<String, dynamic> map) {
     return ProductVariant(
-      label: map['label'] as String,
-      price: (map['price'] as num).toDouble(),
+      label: (map['label'] as String?) ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
       wholesalePrice: (map['wholesalePrice'] as num?)?.toDouble(),
     );
   }
@@ -40,7 +40,7 @@ class ProductMedia extends Equatable {
 
   factory ProductMedia.fromMap(Map<String, dynamic> map) {
     return ProductMedia(
-      url: map['url'] as String,
+      url: (map['url'] as String?) ?? '',
       isPrimary: map['isPrimary'] as bool? ?? false,
       altText: map['altText'] as String?,
     );
@@ -67,8 +67,8 @@ class ProductMarketplaceLink extends Equatable {
 
   factory ProductMarketplaceLink.fromMap(Map<String, dynamic> map) {
     return ProductMarketplaceLink(
-      platform: map['platform'] as String,
-      url: map['url'] as String,
+      platform: (map['platform'] as String?) ?? '',
+      url: (map['url'] as String?) ?? '',
       logoUrl: map['logoUrl'] as String?,
     );
   }
@@ -158,29 +158,32 @@ class Product extends Equatable {
 
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: map['id'] as String,
-      productType: map['productType'] as String,
-      slug: map['slug'] as String,
-      name: map['name'] as String,
+      id: (map['id'] as String?) ?? '',
+      productType: (map['productType'] as String?) ?? 'retail',
+      slug: (map['slug'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
       subtitle: map['subtitle'] as String?,
       description: map['description'] as String? ?? '',
-      basePrice: (map['basePrice'] as num).toDouble(),
+      basePrice: (map['basePrice'] as num?)?.toDouble() ?? 0.0,
       compareAtPrice: (map['compareAtPrice'] as num?)?.toDouble(),
       wholesalePrice: (map['wholesalePrice'] as num?)?.toDouble(),
       variants: (map['variants'] as List<dynamic>? ?? const [])
-          .map((v) => ProductVariant.fromMap(Map<String, dynamic>.from(v as Map)))
+          .whereType<Map>()
+          .map((v) => ProductVariant.fromMap(Map<String, dynamic>.from(v)))
           .toList(),
       requiresShipping: map['requiresShipping'] as bool? ?? true,
       isVeg: map['isVeg'] as bool?,
       isSpicy: map['isSpicy'] as bool?,
       prepTimeLabel: map['prepTimeLabel'] as String?,
-      ratingAvg: (map['ratingAvg'] as num?)?.toDouble() ?? 0,
-      ratingCount: map['ratingCount'] as int? ?? 0,
+      ratingAvg: (map['ratingAvg'] as num?)?.toDouble() ?? 0.0,
+      ratingCount: (map['ratingCount'] as num?)?.toInt() ?? 0,
       media: (map['media'] as List<dynamic>? ?? const [])
-          .map((m) => ProductMedia.fromMap(Map<String, dynamic>.from(m as Map)))
+          .whereType<Map>()
+          .map((m) => ProductMedia.fromMap(Map<String, dynamic>.from(m)))
           .toList(),
       marketplaceLinks: (map['marketplaceLinks'] as List<dynamic>? ?? const [])
-          .map((m) => ProductMarketplaceLink.fromMap(Map<String, dynamic>.from(m as Map)))
+          .whereType<Map>()
+          .map((m) => ProductMarketplaceLink.fromMap(Map<String, dynamic>.from(m)))
           .toList(),
     );
   }

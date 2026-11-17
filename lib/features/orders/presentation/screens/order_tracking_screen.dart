@@ -33,8 +33,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
   Future<void> _makePhoneCall() async {
     final Uri url = Uri.parse('tel:8948998413');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open phone dialer. Call: 8948998413')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Call restaurant at: 8948998413')),
+        );
+      }
     }
   }
 

@@ -182,7 +182,10 @@ GoRouter buildAppRouter(AuthBloc authBloc, CheckoutBloc Function() createCheckou
       GoRoute(
         path: '/order/:publicToken',
         name: 'orderReceipt',
-        redirect: (context, state) => '/orders/${state.pathParameters['publicToken']}',
+        redirect: (context, state) {
+          final token = state.pathParameters['publicToken'];
+          return (token != null && token.isNotEmpty) ? '/orders/$token' : '/orders';
+        },
       ),
     ],
   );
@@ -225,6 +228,31 @@ class _MissingRouteParamScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text(message)));
+    return Scaffold(
+      appBar: AppBar(title: const Text('Not Found')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => context.go('/'),
+                icon: const Icon(Icons.home),
+                label: const Text('Back to Home'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

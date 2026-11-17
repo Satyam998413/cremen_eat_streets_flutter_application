@@ -41,34 +41,38 @@ class OrderRepositoryImpl implements OrderRepository {
   FoodOrder _toFoodOrder(Map<String, dynamic> row) {
     final itemRows = row['order_items'] as List<dynamic>? ?? const [];
     final items = itemRows.map((raw) {
-      final item = raw as Map<String, dynamic>;
+      final item = (raw is Map) ? Map<String, dynamic>.from(raw) : const <String, dynamic>{};
       return OrderLineItem(
         productId: item['product_id'] as String?,
-        productName: item['product_name'] as String,
+        productName: (item['product_name'] as String?) ?? 'Unknown Item',
         variantLabel: item['variant_label'] as String?,
-        unitPrice: (item['unit_price'] as num).toDouble(),
-        quantity: item['quantity'] as int,
-        lineTotal: (item['line_total'] as num).toDouble(),
+        unitPrice: (item['unit_price'] as num?)?.toDouble() ?? 0.0,
+        quantity: (item['quantity'] as num?)?.toInt() ?? 1,
+        lineTotal: (item['line_total'] as num?)?.toDouble() ?? 0.0,
       );
     }).toList();
 
     final fulfillmentType = row['fulfillment_type'] as String? ?? 'pickup';
+    final rawCreatedAt = row['created_at']?.toString();
+    final createdAt = rawCreatedAt != null ? DateTime.tryParse(rawCreatedAt) ?? DateTime.now() : DateTime.now();
 
     return FoodOrder(
-      id: row['id'] as String,
+      id: (row['id'] as String?) ?? '',
       orderNumber: row['order_number'] as String?,
       publicToken: row['public_token'] as String?,
       items: items,
-      subtotal: (row['subtotal'] as num?)?.toDouble() ?? 0,
-      shippingFee: (row['shipping_fee'] as num?)?.toDouble() ?? 0,
-      totalAmount: (row['total'] as num).toDouble(),
-      status: orderStatusFromDb(row['status'] as String),
+      subtotal: (row['subtotal'] as num?)?.toDouble() ?? 0.0,
+      shippingFee: (row['shipping_fee'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (row['total'] as num?)?.toDouble() ?? 0.0,
+      status: orderStatusFromDb((row['status'] as String?) ?? 'pending_payment'),
       orderType: fulfillmentType == 'pickup' ? OrderType.pickup : OrderType.delivery,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      customerName: row['customer_name'] as String,
-      customerPhone: row['customer_phone'] as String,
+      createdAt: createdAt,
+      customerName: (row['customer_name'] as String?) ?? 'Customer',
+      customerPhone: (row['customer_phone'] as String?) ?? '',
       customerEmail: row['customer_email'] as String?,
-      shippingAddress: (row['shipping_address'] as Map?)?.cast<String, dynamic>(),
+      shippingAddress: (row['shipping_address'] is Map)
+          ? Map<String, dynamic>.from(row['shipping_address'] as Map)
+          : null,
       notes: row['notes'] as String?,
     );
   }

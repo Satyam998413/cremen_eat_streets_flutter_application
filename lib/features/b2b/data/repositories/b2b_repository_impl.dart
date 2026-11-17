@@ -77,7 +77,7 @@ class B2bRepositoryImpl implements B2bRepository {
       assignedSalesId: row['assigned_sales_id'] as String?,
       createdBy: row['created_by'] as String? ?? '',
       createdByRole: row['created_by_role'] as String? ?? 'admin',
-      address: row['address'] as Map<String, dynamic>?,
+      address: (row['address'] is Map) ? Map<String, dynamic>.from(row['address'] as Map) : null,
     );
   }
 }

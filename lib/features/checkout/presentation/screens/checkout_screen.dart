@@ -103,12 +103,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _onPaymentSuccess(PaymentSuccessResponse response) {
+    if (!mounted) return;
     context
         .read<CheckoutBloc>()
         .add(CheckoutEvent.paymentSucceeded(response.paymentId ?? '', response.signature ?? ''));
   }
 
   void _onPaymentError(PaymentFailureResponse response) {
+    if (!mounted) return;
     context.read<CheckoutBloc>().add(CheckoutEvent.paymentFailed(response.message ?? 'Payment was cancelled.'));
   }
 
@@ -121,17 +123,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
       return;
     }
-    _razorpay.open({
-      'key': state.keyId,
-      'amount': state.amount,
-      'currency': state.currency,
-      'name': 'Cremen Eat Streets',
-      'order_id': state.razorpayOrderId,
-      'prefill': {
-        'contact': state.prefillContact,
-        if (state.prefillEmail != null && state.prefillEmail!.isNotEmpty) 'email': state.prefillEmail,
-      },
-    });
+    try {
+      _razorpay.open({
+        'key': state.keyId,
+        'amount': state.amount,
+        'currency': state.currency,
+        'name': 'Cremen Eat Streets',
+        'order_id': state.razorpayOrderId,
+        'prefill': {
+          'contact': state.prefillContact,
+          if (state.prefillEmail != null && state.prefillEmail!.isNotEmpty) 'email': state.prefillEmail,
+        },
+      });
+    } catch (e) {
+      if (mounted) {
+        context.read<CheckoutBloc>().add(CheckoutEvent.paymentFailed('Could not open payment gateway: $e'));
+      }
+    }
   }
 
   @override

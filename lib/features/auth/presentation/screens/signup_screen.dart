@@ -27,6 +27,19 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _submit(BuildContext context) {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your full name.')),
+      );
+      return;
+    }
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address.')),
+      );
+      return;
+    }
     if (_passwordController.text.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password must be at least 8 characters.')),
@@ -36,7 +49,7 @@ class _SignupScreenState extends State<SignupScreen> {
     context.read<AuthBloc>().add(
           AuthEvent.signedUpWithPassword(
             _nameController.text.trim(),
-            _emailController.text.trim(),
+            email,
             _passwordController.text,
           ),
         );

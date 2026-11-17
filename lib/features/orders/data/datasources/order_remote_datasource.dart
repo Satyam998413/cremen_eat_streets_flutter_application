@@ -18,7 +18,7 @@ class OrderRemoteDataSource {
   /// on `orders` at all.
   Future<List<Map<String, dynamic>>> fetchHistory() async {
     final rows = await _client.from('orders').select(_orderSelect).order('created_at', ascending: false);
-    return List<Map<String, dynamic>>.from(rows as List);
+    return List<Map<String, dynamic>>.from(rows);
   }
 
   /// Requires the `get_order_by_public_token(p_public_token)` RPC from
@@ -32,7 +32,7 @@ class OrderRemoteDataSource {
   /// (SECURITY DEFINER, matches only the exact token) equivalent for it.
   Future<Map<String, dynamic>?> fetchByPublicToken(String publicToken) async {
     final result = await _client.rpc('get_order_by_public_token', params: {'p_public_token': publicToken});
-    if (result == null) return null;
-    return Map<String, dynamic>.from(result as Map);
+    if (result == null || result is! Map) return null;
+    return Map<String, dynamic>.from(result);
   }
 }

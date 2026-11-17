@@ -18,11 +18,15 @@ class ReviewsRepositoryImpl implements ReviewsRepository {
     try {
       final rows = await _remote.fetchReviews(productId);
       final reviews = rows.map((row) {
+        final rawCreatedAt = row['created_at']?.toString();
+        final createdAt = rawCreatedAt != null
+            ? (DateTime.tryParse(rawCreatedAt) ?? DateTime.now())
+            : DateTime.now();
         return Review(
-          id: row['id'] as String,
-          reviewerName: row['reviewer_name'] as String,
-          rating: row['rating'] as int,
-          createdAt: DateTime.parse(row['created_at'] as String),
+          id: (row['id'] as String?) ?? '',
+          reviewerName: (row['reviewer_name'] as String?) ?? 'Anonymous',
+          rating: (row['rating'] as num?)?.toInt() ?? 5,
+          createdAt: createdAt,
           comment: row['comment'] as String?,
         );
       }).toList();

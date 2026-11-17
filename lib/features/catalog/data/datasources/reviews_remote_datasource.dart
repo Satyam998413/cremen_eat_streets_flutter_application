@@ -15,7 +15,7 @@ class ReviewsRemoteDataSource {
         .select('id, reviewer_name, rating, comment, created_at')
         .eq('product_id', productId)
         .order('created_at', ascending: false);
-    return List<Map<String, dynamic>>.from(rows as List);
+    return List<Map<String, dynamic>>.from(rows);
   }
 
   /// `!inner` forces the join so the `orders.status` filter actually
@@ -28,9 +28,8 @@ class ReviewsRemoteDataSource {
         .eq('product_id', productId)
         .eq('orders.status', 'delivered')
         .limit(1);
-    final list = List<Map<String, dynamic>>.from(rows as List);
-    if (list.isEmpty) return null;
-    return list.first['order_id'] as String;
+    if (rows.isEmpty) return null;
+    return rows.first['order_id'] as String?;
   }
 
   /// Upsert, not insert: the unique `(product_id, order_id)` constraint plus

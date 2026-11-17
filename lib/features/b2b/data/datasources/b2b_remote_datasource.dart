@@ -31,6 +31,6 @@ class B2bRemoteDataSource {
         .eq('assigned_sales_id', salesId)
         .eq('status', 'active')
         .order('full_name');
-    return List<Map<String, dynamic>>.from(rows as List);
+    return List<Map<String, dynamic>>.from(rows);
   }
 }

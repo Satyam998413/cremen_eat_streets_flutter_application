@@ -84,17 +84,28 @@ class _OtpScreenState extends State<OtpScreen> {
                                 AppButton(
                                   label: 'Verify',
                                   isLoading: state is AuthLoading,
-                                  onPressed: () => context.read<AuthBloc>().add(
-                                        AuthEvent.otpVerified(
-                                          _emailController.text.trim(),
-                                          _codeController.text.trim(),
-                                        ),
-                                      ),
+                                  onPressed: () {
+                                    final code = _codeController.text.trim();
+                                    if (code.length != 6) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Please enter the 6-digit code.')),
+                                      );
+                                      return;
+                                    }
+                                    context.read<AuthBloc>().add(
+                                          AuthEvent.otpVerified(
+                                            _emailController.text.trim(),
+                                            code,
+                                          ),
+                                        );
+                                  },
                                 ),
                                 TextButton(
-                                  onPressed: () => context.read<AuthBloc>().add(
-                                        AuthEvent.otpRequested(_emailController.text.trim()),
-                                      ),
+                                  onPressed: () {
+                                    final email = _emailController.text.trim();
+                                    if (email.isEmpty) return;
+                                    context.read<AuthBloc>().add(AuthEvent.otpRequested(email));
+                                  },
                                   child: const Text('Resend code'),
                                 ),
                               ],
@@ -106,9 +117,16 @@ class _OtpScreenState extends State<OtpScreen> {
                                 AppButton(
                                   label: 'Send Code',
                                   isLoading: state is AuthLoading,
-                                  onPressed: () => context.read<AuthBloc>().add(
-                                        AuthEvent.otpRequested(_emailController.text.trim()),
-                                      ),
+                                  onPressed: () {
+                                    final email = _emailController.text.trim();
+                                    if (email.isEmpty || !email.contains('@')) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Please enter a valid email address.')),
+                                      );
+                                      return;
+                                    }
+                                    context.read<AuthBloc>().add(AuthEvent.otpRequested(email));
+                                  },
                                 ),
                               ],
                             ),
