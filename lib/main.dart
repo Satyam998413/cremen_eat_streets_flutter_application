@@ -20,22 +20,93 @@ import 'features/orders/presentation/bloc/order_bloc.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Global Flutter and platform error handlers to catch unhandled errors gracefully
+  // and prevent native OS process termination (app crashes) in production
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('PlatformDispatcher error: $error\n$stack');
+    return true; // Marked as handled to prevent crashing the OS process
+  };
+
+  // Safe fallback error widget in release builds so unexpected widget errors
+  // don't freeze or produce a blank/broken experience
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.info_outline, color: Colors.orange, size: 48),
+              const SizedBox(height: 12),
+              const Text(
+                'Something went wrong. Please reopen the screen.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14),
+              ),
+              if (kDebugMode) ...[
+                const SizedBox(height: 8),
+                Text(details.exceptionAsString(), style: const TextStyle(fontSize: 11, color: Colors.red)),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
   // Engine performance optimization: cap in-memory image cache to 50MB / 100 images
   // to maintain smooth 60/120fps scrolling and avoid memory pressure on Android
   PaintingBinding.instance.imageCache.maximumSize = 100;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
 
-  await HiveStorageService.init();
-  await Hive.openBox(ThemeCubit.boxName);
-  await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);
+  try {
+    await HiveStorageService.init();
+  } catch (e) {
+    debugPrint('HiveStorageService.init failed: $e');
+  }
+
+  try {
+    if (!Hive.isBoxOpen(ThemeCubit.boxName)) {
+      await Hive.openBox(ThemeCubit.boxName);
+    }
+  } catch (e) {
+    debugPrint('Hive.openBox(ThemeCubit.boxName) failed: $e');
+  }
+
+  try {
+    await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);
+  } catch (e) {
+    debugPrint('Supabase.initialize failed: $e');
+  }
+
   // AdMob has no web/desktop implementation — only initialize on mobile.
   if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
-    await MobileAds.instance.initialize();
+    try {
+      await MobileAds.instance.initialize();
+      // Set G-rated content rating to comply with family-safe ad guidelines
+      final requestConfiguration = RequestConfiguration(
+        maxAdContentRating: MaxAdContentRating.g,
+      );
+      await MobileAds.instance.updateRequestConfiguration(requestConfiguration);
+    } catch (e) {
+      debugPrint('MobileAds.instance.initialize failed: $e');
+    }
   }
+
   // Must run after Hive/Supabase are ready — several @lazySingleton
   // constructors (ThemeCubit, the Supabase-backed datasources) touch them
   // the first time get_it resolves that type.
-  configureDependencies();
+  try {
+    configureDependencies();
+  } catch (e) {
+    debugPrint('configureDependencies failed: $e');
+  }
+
   runApp(const CremenKartApp());
 }
 

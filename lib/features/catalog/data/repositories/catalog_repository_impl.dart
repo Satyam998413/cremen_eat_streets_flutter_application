@@ -44,9 +44,10 @@ class CatalogRepositoryImpl implements CatalogRepository {
   Product _toProduct(Map<String, dynamic> row, {Map<String, String> logoByKey = const {}}) {
     final mediaRows = row['product_media'] as List<dynamic>? ?? const [];
     final media = mediaRows.map((raw) {
-      final m = raw as Map<String, dynamic>;
+      final m = (raw is Map) ? Map<String, dynamic>.from(raw) : const <String, dynamic>{};
+      final storagePath = m['storage_path'] as String? ?? '';
       return ProductMedia(
-        url: _remote.publicMediaUrl(m['storage_path'] as String),
+        url: storagePath.isNotEmpty ? _remote.publicMediaUrl(storagePath) : '',
         isPrimary: m['is_primary'] as bool? ?? false,
         altText: m['alt_text'] as String?,
       );
@@ -54,34 +55,34 @@ class CatalogRepositoryImpl implements CatalogRepository {
 
     final variantRows = row['variants'] as List<dynamic>? ?? const [];
     final variants = variantRows.map((raw) {
-      final v = raw as Map<String, dynamic>;
+      final v = (raw is Map) ? Map<String, dynamic>.from(raw) : const <String, dynamic>{};
       return ProductVariant(
-        label: v['label'] as String,
-        price: (v['price'] as num).toDouble(),
+        label: (v['label'] as String?) ?? '',
+        price: (v['price'] as num?)?.toDouble() ?? 0.0,
         wholesalePrice: (v['wholesalePrice'] as num?)?.toDouble(),
       );
     }).toList();
 
     final marketplaceLinkRows = row['marketplace_links'] as List<dynamic>? ?? const [];
     final marketplaceLinks = marketplaceLinkRows.map((raw) {
-      final m = raw as Map<String, dynamic>;
-      final platform = m['platform'] as String;
+      final m = (raw is Map) ? Map<String, dynamic>.from(raw) : const <String, dynamic>{};
+      final platform = (m['platform'] as String?) ?? '';
       final logoPath = logoByKey[platform.toLowerCase()];
       return ProductMarketplaceLink(
         platform: platform,
-        url: m['url'] as String,
-        logoUrl: logoPath != null ? _remote.publicMediaUrl(logoPath) : null,
+        url: (m['url'] as String?) ?? '',
+        logoUrl: (logoPath != null && logoPath.isNotEmpty) ? _remote.publicMediaUrl(logoPath) : null,
       );
     }).toList();
 
     return Product(
-      id: row['id'] as String,
-      productType: row['product_type'] as String,
-      slug: row['slug'] as String,
-      name: row['name'] as String,
+      id: (row['id'] as String?) ?? '',
+      productType: (row['product_type'] as String?) ?? 'retail',
+      slug: (row['slug'] as String?) ?? '',
+      name: (row['name'] as String?) ?? '',
       subtitle: row['subtitle'] as String?,
-      description: row['description'] as String? ?? '',
-      basePrice: (row['base_price'] as num).toDouble(),
+      description: (row['description'] as String?) ?? '',
+      basePrice: (row['base_price'] as num?)?.toDouble() ?? 0.0,
       compareAtPrice: (row['compare_at_price'] as num?)?.toDouble(),
       wholesalePrice: (row['wholesale_price'] as num?)?.toDouble(),
       variants: variants,
@@ -89,8 +90,8 @@ class CatalogRepositoryImpl implements CatalogRepository {
       isVeg: row['is_veg'] as bool?,
       isSpicy: row['is_spicy'] as bool?,
       prepTimeLabel: row['prep_time_label'] as String?,
-      ratingAvg: (row['rating_avg'] as num?)?.toDouble() ?? 0,
-      ratingCount: row['rating_count'] as int? ?? 0,
+      ratingAvg: (row['rating_avg'] as num?)?.toDouble() ?? 0.0,
+      ratingCount: (row['rating_count'] as num?)?.toInt() ?? 0,
       media: media,
       marketplaceLinks: marketplaceLinks,
     );

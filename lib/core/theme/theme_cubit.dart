@@ -14,16 +14,25 @@ class ThemeCubit extends Cubit<ThemeMode> {
   static const _themeKey = 'themeMode';
 
   static ThemeMode _readStored() {
-    final box = Hive.box(boxName);
-    return switch (box.get(_themeKey) as String?) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
-    };
+    try {
+      if (!Hive.isBoxOpen(boxName)) return ThemeMode.system;
+      final box = Hive.box(boxName);
+      return switch (box.get(_themeKey) as String?) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+    } catch (_) {
+      return ThemeMode.system;
+    }
   }
 
   Future<void> changeTheme(ThemeMode mode) async {
     emit(mode);
-    await Hive.box(boxName).put(_themeKey, mode.name);
+    try {
+      if (Hive.isBoxOpen(boxName)) {
+        await Hive.box(boxName).put(_themeKey, mode.name);
+      }
+    } catch (_) {}
   }
 }

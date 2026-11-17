@@ -60,19 +60,28 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
       // Authorization header (see create-order/route.js's Bearer-token path).
       final token = Supabase.instance.client.auth.currentSession?.accessToken;
       final response = await _remote.createOrder(payload, bearerToken: token);
+      if (response.data is! Map) {
+        return const Failed(NetworkFailure('Unexpected response from server.'));
+      }
       final data = Map<String, dynamic>.from(response.data as Map);
 
       if (response.statusCode == 200) {
+        final orderId = data['orderId'] as String?;
+        if (orderId == null) {
+          return Failed(ValidationFailure(data['error'] as String? ?? 'Could not place your order: missing order ID.'));
+        }
         if (data['codConfirmed'] == true) {
           return Success(CreatedOrder(
-            orderId: data['orderId'] as String,
+            orderId: orderId,
             codConfirmed: true,
             publicToken: data['publicToken'] as String?,
           ));
         }
-        final prefill = data['prefill'] as Map<String, dynamic>? ?? const {};
+        final prefill = (data['prefill'] is Map)
+            ? Map<String, dynamic>.from(data['prefill'] as Map)
+            : const <String, dynamic>{};
         return Success(CreatedOrder(
-          orderId: data['orderId'] as String,
+          orderId: orderId,
           razorpayOrderId: data['razorpayOrderId'] as String?,
           amount: data['amount'] as int?,
           currency: data['currency'] as String?,
@@ -104,9 +113,13 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
         'razorpay_payment_id': razorpayPaymentId,
         'razorpay_signature': razorpaySignature,
       });
+      if (response.data is! Map) {
+        return const Failed(NetworkFailure('Unexpected response from server during verification.'));
+      }
       final data = Map<String, dynamic>.from(response.data as Map);
       if (response.statusCode == 200) {
-        return Success(data['publicToken'] as String);
+        final token = data['publicToken'] as String?;
+        if (token != null) return Success(token);
       }
       return Failed(ValidationFailure(data['error'] as String? ?? 'Payment verification failed.'));
     } on DioException catch (e) {
@@ -120,6 +133,9 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
   Future<Result<ResolvedAddress>> reverseGeocode({required double lat, required double lon}) async {
     try {
       final response = await _remote.reverseGeocode(lat: lat, lon: lon);
+      if (response.data is! Map) {
+        return const Failed(NetworkFailure('Unexpected response from geocode server.'));
+      }
       final data = Map<String, dynamic>.from(response.data as Map);
       if (response.statusCode == 200) {
         return Success(ResolvedAddress(

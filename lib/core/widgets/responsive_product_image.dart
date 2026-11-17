@@ -38,14 +38,19 @@ class ResponsiveProductImage extends StatelessWidget {
     final hasRemoteScheme = Uri.tryParse(imageUrl)?.hasScheme ?? false;
     final bool shouldUseRemote = hasRemoteScheme && imageUrl.trim().isNotEmpty;
 
+    final int calculatedCacheWidth =
+        (width != null && width!.isFinite && width! > 0) ? (width! * 2).round() : 600;
+    final int? calculatedCacheHeight =
+        (height != null && height!.isFinite && height! > 0) ? (height! * 2).round() : null;
+
     final imageWidget = shouldUseRemote
         ? CachedNetworkImage(
             imageUrl: imageUrl,
             width: width,
             height: height,
             fit: fit,
-            memCacheWidth: width != null ? (width! * 2).round() : 600,
-            memCacheHeight: height != null ? (height! * 2).round() : null,
+            memCacheWidth: calculatedCacheWidth,
+            memCacheHeight: calculatedCacheHeight,
             fadeInDuration: const Duration(milliseconds: 300),
             fadeInCurve: Curves.easeOut,
             placeholder: (context, url) => _buildShimmerPlaceholder(context),
@@ -56,7 +61,7 @@ class ResponsiveProductImage extends StatelessWidget {
             width: width,
             height: height,
             fit: fit,
-            cacheWidth: width != null ? (width! * 2).round() : 600,
+            cacheWidth: calculatedCacheWidth,
             errorBuilder: (context, error, stackTrace) => _buildFallback(),
           );
 
@@ -100,6 +105,9 @@ class ResponsiveProductImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
+        errorBuilder: (_, _, _) => Center(
+          child: Icon(fallbackIcon, size: 40, color: Colors.orange.shade300),
+        ),
       ),
     );
   }

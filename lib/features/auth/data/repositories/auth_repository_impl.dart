@@ -40,29 +40,35 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   Future<CustomerProfile> _loadProfile(User user) async {
-    var row = await _remote.fetchCustomerProfile(user.id);
-    if (row == null) {
-      // No customer_profiles row yet — this session is brand new (a password
-      // signup that got an immediate session, or a first-time Google
-      // sign-in). Create it now via the one RPC that's allowed to.
-      final provider = (user.appMetadata['provider'] as String?) ?? 'password';
-      await _remote.ensureCustomerProfile(
-        fullName: (user.userMetadata?['full_name'] as String?) ?? '',
-        email: user.email ?? '',
-        authProvider: provider == 'google' ? 'google' : 'password',
+    try {
+      var row = await _remote.fetchCustomerProfile(user.id);
+      if (row == null) {
+        // No customer_profiles row yet — this session is brand new (a password
+        // signup that got an immediate session, or a first-time Google
+        // sign-in). Create it now via the one RPC that's allowed to.
+        try {
+          final provider = (user.appMetadata['provider'] as String?) ?? 'password';
+          await _remote.ensureCustomerProfile(
+            fullName: (user.userMetadata?['full_name'] as String?) ?? '',
+            email: user.email ?? '',
+            authProvider: provider == 'google' ? 'google' : 'password',
+          );
+          row = await _remote.fetchCustomerProfile(user.id);
+        } catch (_) {}
+      }
+      if (row == null) return _profileFromAuthUser(user);
+      return CustomerProfile(
+        id: user.id,
+        fullName: row['full_name'] as String? ?? '',
+        email: row['email'] as String? ?? user.email ?? '',
+        authProvider: row['auth_provider'] as String? ?? 'password',
+        mobileNumber: row['mobile_number'] as String?,
+        mobileVerified: row['mobile_verified'] as bool? ?? false,
+        address: (row['address'] is Map) ? Map<String, dynamic>.from(row['address'] as Map) : null,
       );
-      row = await _remote.fetchCustomerProfile(user.id);
+    } catch (_) {
+      return _profileFromAuthUser(user);
     }
-    if (row == null) return _profileFromAuthUser(user);
-    return CustomerProfile(
-      id: user.id,
-      fullName: row['full_name'] as String? ?? '',
-      email: row['email'] as String? ?? user.email ?? '',
-      authProvider: row['auth_provider'] as String? ?? 'password',
-      mobileNumber: row['mobile_number'] as String?,
-      mobileVerified: row['mobile_verified'] as bool? ?? false,
-      address: row['address'] as Map<String, dynamic>?,
-    );
   }
 
   @override

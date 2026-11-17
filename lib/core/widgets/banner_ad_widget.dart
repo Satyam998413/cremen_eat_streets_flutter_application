@@ -36,26 +36,38 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   }
 
   Future<void> _loadAd() async {
-    final width = MediaQuery.sizeOf(context).width.truncate();
-    final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSizeWithOrientation(Orientation.portrait, width);
-    if (size == null || !mounted) return;
+    try {
+      if (!mounted) return;
+      final width = MediaQuery.sizeOf(context).width.truncate();
+      if (width <= 0) return;
+      final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSizeWithOrientation(Orientation.portrait, width);
+      if (size == null || !mounted) return;
 
-    final ad = BannerAd(
-      adUnitId: _bannerAdUnitId,
-      size: size,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          if (!mounted) return;
-          setState(() => _bannerAd = ad as BannerAd);
-        },
-        onAdFailedToLoad: (ad, error) {
-          debugPrint('BannerAd failed to load: $error');
-          ad.dispose();
-        },
-      ),
-    );
-    await ad.load();
+      final ad = BannerAd(
+        adUnitId: _bannerAdUnitId,
+        size: size,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            if (!mounted) {
+              ad.dispose();
+              return;
+            }
+            setState(() => _bannerAd = ad as BannerAd);
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('BannerAd failed to load: $error');
+            ad.dispose();
+            if (mounted) {
+              setState(() => _bannerAd = null);
+            }
+          },
+        ),
+      );
+      await ad.load();
+    } catch (e) {
+      debugPrint('BannerAd _loadAd error: $e');
+    }
   }
 
   @override

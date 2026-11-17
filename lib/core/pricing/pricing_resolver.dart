@@ -45,7 +45,7 @@ class PricingResolver {
 
   /// Mirrors `discountPercent(unitPrice, compareAtPrice)`.
   static int? discountPercent(double unitPrice, double? compareAtPrice) {
-    if (compareAtPrice == null || compareAtPrice <= unitPrice) return null;
+    if (compareAtPrice == null || compareAtPrice <= unitPrice || compareAtPrice <= 0) return null;
     return (((compareAtPrice - unitPrice) / compareAtPrice) * 100).round();
   }
 

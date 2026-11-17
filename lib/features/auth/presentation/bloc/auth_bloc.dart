@@ -53,6 +53,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     _authSubscription = _repository.authStateChanges.listen(
       (profile) => add(AuthEvent.externalSessionChanged(profile)),
+      onError: (error) {
+        // Prevent unhandled stream errors from bubbling up
+      },
     );
 
     add(const AuthEvent.sessionChecked());
